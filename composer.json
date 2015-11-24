@@ -12,7 +12,7 @@
         "php": ">=5.3.0",
         "guzzle/guzzle": "^3.9",
         "tedivm/stash": "0.12.*",
-        "shkm/jsend": "dev-master"
+        "shkm/jsend": "dev-master@dev"
     },
     "autoload": {
         "psr-4": {
