@@ -8,6 +8,7 @@
 
 namespace IngatlanCom\ApiClient;
 
+use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\MultiTransferException;
 use Guzzle\Http\Message\RequestInterface;
@@ -23,18 +24,18 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
-    private $apiUrl;
     private $token;
-    /**
-     * @var ClientFactoryService
-     */
-    private $clientFactoryService;
 
     /**
      * Cache a JWT tokennek
      * @var Pool
      */
     private $stashPool;
+
+    /**
+     * @var Client
+     */
+    private $client;
 
     /**
      * ApiClient constructor.
@@ -45,9 +46,9 @@ class ApiClient
      */
     public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
     {
-        $this->apiUrl = $apiUrl;
         $this->stashPool = $stashPool;
-        $this->clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
+        $clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
+        $this->client = $clientFactoryService->getClient($apiUrl);
     }
 
     public function login($username, $password)
@@ -309,8 +310,7 @@ class ApiClient
      */
     private function getRequest($method, $endpoint, $body = null)
     {
-        $client = $this->clientFactoryService->getClient($this->apiUrl);
-        $request = $client->createRequest($method, '/app_dev.php/v' . self::APIVERSION . $endpoint, null, $body);
+        $request = $this->client->createRequest($method, '/app_dev.php/v' . self::APIVERSION . $endpoint, null, $body);
 
         $request->addHeader('Accept', 'application/json');
 
