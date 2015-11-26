@@ -310,7 +310,7 @@ class ApiClient
      */
     private function getRequest($method, $endpoint, $body = null)
     {
-        $request = $this->client->createRequest($method, '/app_dev.php/v' . self::APIVERSION . $endpoint, null, $body);
+        $request = $this->client->createRequest($method, '/v' . self::APIVERSION . $endpoint, null, $body);
 
         $request->addHeader('Accept', 'application/json');
 
