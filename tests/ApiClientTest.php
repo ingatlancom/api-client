@@ -22,13 +22,12 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
     {
         $this->setMockBasePath(__DIR__ . '/mock/responses');
         $this->clientFactoryService = new ClientFactoryMockService();
-        $this->clientFactoryService->setTestCase($this);
         $this->apiClient = new \IngatlanCom\ApiClient\ApiClient('', null, $this->clientFactoryService);
     }
 
     public function testLoginSuccess()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess'));
         $this->apiClient->login('lolka', 'bolka');
     }
 
@@ -37,20 +36,20 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testLoginFail()
     {
-        $this->clientFactoryService->setMocks(array('loginFail'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginFail'));
         $this->apiClient->login('lolka', 'bolka');
     }
 
     public function testPutAdSuccess()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess', 'putAdSuccess'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdSuccess'));
         $this->apiClient->login('lolka', 'bolka');
         $this->apiClient->putAd(array('ownId' => 'i12345'));
     }
 
     public function testPutAdFail()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess', 'putAdFail'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdFail'));
         $this->apiClient->login('lolka', 'bolka');
         try {
             $this->apiClient->putAd(array('ownId' => 'i12345'));
@@ -61,7 +60,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSyncAds()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess', 'getAdIdsSuccess', 'deleteAdSuccess', 'deleteAdSuccess'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'getAdIdsSuccess', 'deleteAdSuccess', 'deleteAdSuccess'));
         $this->apiClient->login('lolka', 'bolka');
 
         $deleted = $this->apiClient->syncAds(array('ad2', 'ad4'));
@@ -71,7 +70,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testPutPhotosMultiSuccess()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess', 'putPhotoSuccess', 'putPhotoSuccess'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoSuccess'));
         $this->apiClient->login('lolka', 'bolka');
 
         $this->apiClient->putPhotosMulti('i12345', array(
@@ -89,7 +88,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testPutPhotosMultiFail()
     {
-        $this->clientFactoryService->setMocks(array('loginSuccess', 'putPhotoSuccess', 'putPhotoFail'));
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoFail'));
         $this->apiClient->login('lolka', 'bolka');
 
         $this->apiClient->putPhotosMulti(
@@ -108,7 +107,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSyncPhotos()
     {
-        $this->clientFactoryService->setMocks(array(
+        $this->setMockResponse($this->clientFactoryService->getClient(null), array(
             'loginSuccess',
             'getPhotosSuccess',
             'deletePhotoSuccess',//1

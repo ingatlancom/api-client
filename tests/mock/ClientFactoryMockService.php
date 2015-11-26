@@ -9,11 +9,6 @@
 class ClientFactoryMockService extends \IngatlanCom\ApiClient\Service\ClientFactoryService
 {
     /**
-     * @var \Guzzle\Tests\GuzzleTestCase
-     */
-    private $testCase;
-
-    /**
      * @var \Guzzle\Http\Client
      */
     private $client;
@@ -25,17 +20,9 @@ class ClientFactoryMockService extends \IngatlanCom\ApiClient\Service\ClientFact
      */
     public function getClient($baseUrl = '', $config = null)
     {
-        $this->client = parent::getClient($baseUrl, $config);
+        if (!$this->client) {
+            $this->client = parent::getClient($baseUrl, $config);
+        }
         return $this->client;
-    }
-
-    public function setMocks(array $mocks)
-    {
-        $this->testCase->setMockResponse($this->client, $mocks);
-    }
-
-    public function setTestCase(\Guzzle\Tests\GuzzleTestCase $testCase)
-    {
-        $this->testCase = $testCase;
     }
 }
