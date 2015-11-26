@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+
+{
+  "status": "success",
+  "data": {
+    "photo": {
+      "order": 1,
+      "ownId": "pX",
+      "md5Hash": null,
+      "title": null,
+      "labelId": null
+    }
+  }
+}

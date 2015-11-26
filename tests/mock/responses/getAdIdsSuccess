@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+
+{
+  "status": "success",
+  "data": {
+    "ids": [
+      {
+        "id": "1",
+        "ownId": "ad1",
+        "statusId": 0
+      },
+      {
+        "id": "2",
+        "ownId": "ad2",
+        "statusId": 0
+      },
+      {
+        "id": "3",
+        "ownId": "ad3",
+        "statusId": 0
+      }
+    ]
+  }
+}

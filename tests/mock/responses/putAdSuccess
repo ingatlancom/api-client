@@ -1,0 +1,102 @@
+HTTP/1.1 200 OK
+
+{
+  "status": "success",
+  "data": {
+    "ad": {
+      "id": "21334998",
+      "agentId": 0,
+      "ownId": "130362",
+      "realEstateAgencyOwnId": "GDN-130362",
+      "projectId": "21334998",
+      "listingType": 1,
+      "isRentRight": false,
+      "isStreetHidden": true,
+      "isStreetNumberHidden": true,
+      "agenciesAccepted": 0,
+      "priceHuf": 18500000,
+      "priceEur": 59690,
+      "priceType": 1,
+      "parkingPrice": 0,
+      "city": "Budapest",
+      "zone": null,
+      "street": "Gyöngyösi utca",
+      "district": 13,
+      "utilityCosts": null,
+      "petsAllowed": null,
+      "smokingAllowed": null,
+      "propertyType": 1,
+      "propertySubtype": 2,
+      "areaSize": 58,
+      "areaSizeLiving": null,
+      "lotSize": 0,
+      "buildingFloorCount": 4,
+      "floor": 5,
+      "elevatorType": 2,
+      "cellarType": 0,
+      "atticType": 0,
+      "furnitureType": 0,
+      "houseNumber": "",
+      "gardenSize": 0,
+      "balconySize": 3,
+      "electricityType": 0,
+      "heatingType": 4,
+      "description": "XIII, kerületben, Angyalföld közkedvelt csendes-parkosított  övezetében, Gyöngyösi utcában, pár perc sétára az M3-as metrótól, és a Duna Plazától, 80-as években épült, 4.emeletes rendezett panelházban, 58 nm-es, 1+2 fél szobás, erkélyes, ablakos konyhás, étkezős, kiváló elosztású, külön nyíló szobás, napos-világos fekvésű \r\n(D-NY), alacsony fenntartású, 2. emeleti, csendes parkra néző, jó állapotú lakás, kulturált lakóközösségű házban eladó!\r\nAz ingatlant 2013-ban felújították, az ablakokat thermora cserélték!\r\nA parkolás közvetlen a ház előtt megoldott.\r\nHa csendre, nyugalomra vágyik, de mégis biztonságos, központi helyen élni, ez az Ön lakása!\r\nTovábbi részletekért hívjon bizalommal. (hétvégén is)",
+      "descriptionEn": "",
+      "descriptionDe": "",
+      "statusId": 0,
+      "comfortLevel": 3,
+      "energyPerformanceCert": 0,
+      "drainageType": 0,
+      "waterType": 0,
+      "gasType": 0,
+      "roomCount": 1,
+      "roomCountOffice": null,
+      "smallRoomCount": 2,
+      "parkingType": 0,
+      "parkingPriceType": 0,
+      "parkingPlaceCount": 0,
+      "conditionType": 5,
+      "viewType": 4,
+      "innerHeight": 0,
+      "accessibility": 2,
+      "hasMachines": null,
+      "panelprogram": 0,
+      "gardenAccess": 0,
+      "bathroomWithoutToilet": 0,
+      "orientation": 6,
+      "airConditioner": 0,
+      "officeCategory": null,
+      "photos": [
+        {
+          "order": 1,
+          "ownId": "7f53d2121c2bc4307953326e38f8964c",
+          "md5Hash": null,
+          "title": null,
+          "labelId": null
+        },
+        {
+          "order": 2,
+          "ownId": "6e2be3d1486605f6323f76ba763b8f59",
+          "md5Hash": null,
+          "title": null,
+          "labelId": null
+        },
+        {
+          "order": 3,
+          "ownId": "65b6fcf42c2454b67c813ee6c1f7ad4e",
+          "md5Hash": null,
+          "title": null,
+          "labelId": null
+        },
+        {
+          "order": 4,
+          "ownId": "7a65d09d614a190985da71f3dbbb8256",
+          "md5Hash": null,
+          "title": null,
+          "labelId": null
+        }
+      ]
+    }
+  }
+}

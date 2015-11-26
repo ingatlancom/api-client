@@ -1,0 +1,37 @@
+HTTP/1.1 200 OK
+
+{
+  "status": "success",
+  "data": {
+    "photos": [
+      {
+        "order": 1,
+        "ownId": "p1",
+        "md5Hash": null,
+        "title": "photo1",
+        "labelId": null
+      },
+      {
+        "order": 2,
+        "ownId": "p2",
+        "md5Hash": null,
+        "title": "photo2",
+        "labelId": null
+      },
+      {
+        "order": 3,
+        "ownId": "p3",
+        "md5Hash": null,
+        "title": "photo3",
+        "labelId": null
+      },
+      {
+        "order": 4,
+        "ownId": "p4",
+        "md5Hash": null,
+        "title": "photo4",
+        "labelId": null
+      }
+    ]
+  }
+}

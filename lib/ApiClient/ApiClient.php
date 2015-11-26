@@ -8,13 +8,13 @@
 
 namespace IngatlanCom\ApiClient;
 
-use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\MultiTransferException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
 use IngatlanCom\ApiClient\Exception\JSendErrorException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Service\ClientFactoryService;
 use IngatlanCom\ApiClient\Service\PhotoSyncService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
@@ -25,6 +25,10 @@ class ApiClient
     const APIVERSION = 1;
     private $apiUrl;
     private $token;
+    /**
+     * @var ClientFactoryService
+     */
+    private $clientFactoryService;
 
     /**
      * Cache a JWT tokennek
@@ -36,12 +40,14 @@ class ApiClient
      * ApiClient constructor.
      *
      * @param string $apiUrl
-     * @param Pool|null $stashPool
+     * @param Pool $stashPool
+     * @param ClientFactoryService $clientFactoryService
      */
-    public function __construct($apiUrl, Pool $stashPool = null)
+    public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
     {
         $this->apiUrl = $apiUrl;
         $this->stashPool = $stashPool;
+        $this->clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
     }
 
     public function login($username, $password)
@@ -152,12 +158,11 @@ class ApiClient
      */
     public function syncAds(array $adIds)
     {
-        $ids = $this->getAdIds();
-        if (!$ids->isSuccess()) {
-            throw new \Exception('A hirdetés ID-k lekérése nem sikerült');
+        try {
+            $data = $this->getAdIds();
+        }catch (\Exception $e) {
+            throw new \Exception('A hirdetés ID-k lekérése nem sikerült', 0, $e);
         }
-
-        $data = $ids->getData();
 
         $ownIds = array_reduce(
             $data['ids'],
@@ -299,11 +304,12 @@ class ApiClient
      * @param string $method
      * @param string $endpoint
      * @param string|null $body
-     * @return \Guzzle\Http\Message\RequestInterface
+     * @return RequestInterface
+     * @throws \Exception
      */
     private function getRequest($method, $endpoint, $body = null)
     {
-        $client = new Client($this->apiUrl);
+        $client = $this->clientFactoryService->getClient($this->apiUrl);
         $request = $client->createRequest($method, '/app_dev.php/v' . self::APIVERSION . $endpoint, null, $body);
 
         $request->addHeader('Accept', 'application/json');
@@ -314,6 +320,8 @@ class ApiClient
 
         if ($this->token) {
             $request->addHeader('Authorization', 'Bearer ' . $this->token);
+        } elseif ('/auth/login' != $endpoint) {
+            throw new \Exception('Auth error');
         }
 
         return $request;
