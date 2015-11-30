@@ -32,7 +32,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException \IngatlanCom\ApiClient\Exception\NotAuthenticatedException
      */
     public function testLoginFail()
     {
@@ -104,7 +104,6 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
         );
     }
 
-
     public function testSyncPhotos()
     {
         $this->setMockResponse($this->clientFactoryService->getClient(null), array(
@@ -148,7 +147,9 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
             )
         ));
 
-        //photos2 nincs
-        $this->assertCount(1, $result['errors']);
+        //photos/2.jpg nincs
+        $this->assertCount(0, $result->getDeletePhotoErrors());
+        $this->assertCount(1, $result->getFetchPhotoErrors());
+        $this->assertCount(0, $result->getPutPhotoErrors());
     }
 }

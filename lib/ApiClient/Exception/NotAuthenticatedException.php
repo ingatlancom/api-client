@@ -2,14 +2,14 @@
 /**
  * Created by PhpStorm.
  * User: zooli
- * Date: 2015.11.12.
- * Time: 16:28
+ * Date: 2015.11.27.
+ * Time: 16:38
  */
 
 namespace IngatlanCom\ApiClient\Exception;
 
 
-class JSendErrorException extends JSendException
+class NotAuthenticatedException extends \Exception
 {
 
 }

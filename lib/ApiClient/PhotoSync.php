@@ -6,16 +6,20 @@
  * Time: 11:37
  */
 
-namespace IngatlanCom\ApiClient\Service;
+namespace IngatlanCom\ApiClient;
 
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\MultiTransferException;
-use IngatlanCom\ApiClient\ApiClient;
-use IngatlanCom\ApiClient\Exception\JSendErrorException;
+use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
-class PhotoSyncService
+class PhotoSync
 {
+    const PUT_WITH_IMAGE_DATA = 2;
+    const PUT_WITHOUT_IMAGE_DATA = 1;
+    const PUT_NOTNEEDED = 0;
+
     /**
      * @var ApiClient
      */
@@ -47,6 +51,30 @@ class PhotoSyncService
     private $photoPutQueue;
 
     /**
+     * Kép file kezelés hibák
+     * @var array
+     */
+    private $fetchPhotoErrors = array();
+
+    /**
+     * Kép törlés API hibák
+     * @var array
+     */
+    private $deletePhotoErrors = array();
+
+    /**
+     * Kép feltöltés API hibák
+     * @var array
+     */
+    private $putPhotoErrors = array();
+
+    /**
+     * Képek
+     * @var array
+     */
+    private $photos;
+
+    /**
      * PhotoSyncService constructor.
      *
      * @param ApiClient $apiClient
@@ -69,7 +97,7 @@ class PhotoSyncService
      * @param array $photos
      * @param bool $forceImageDataUpdate
      * @param array|null $uploadedPhotos
-     * @return array
+     * @return PhotoSync
      */
     public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null)
     {
@@ -82,32 +110,28 @@ class PhotoSyncService
 
         //delete
         $photosToDelete = array_diff_key($this->uploadedPhotosByOwnId, $this->localPhotosByOwnId);
-        $deleteErrors = array();
         try {
             $this->apiClient->deletePhotosMulti($adOwnId, $photosToDelete);
         } catch (MultiTransferException $e) {
-            $deleteErrors = $this->parseMultiTransferException($e, $photosToDelete);
+            $this->deletePhotoErrors = $this->parseMultiTransferException($e, $photosToDelete);
             //TODO: ha delete error van, akkor a sort queue-be is bele kell tenni, vagy el kell szallni!
+            //megoldas: megyunk tovabb ha nem sikerul torolni. sorrendezesnel: ?bence
         }
 
         //fetch image data, diff with uploaded
-        $getImageErrors = $this->buildPhotoQueues($forceImageDataUpdate);
+        $this->buildPhotoQueues($forceImageDataUpdate);
 
         //put
-        $putErrors = array();
         try {
             $this->apiClient->putPhotosMulti($adOwnId, $this->photoPutQueue);
         } catch (MultiTransferException $e) {
-            $putErrors = $this->parseMultiTransferException($e, $this->photoPutQueue);
+            $this->putPhotoErrors = $this->parseMultiTransferException($e, $this->photoPutQueue);
         }
 
         //fix order
-        $photos = $this->syncPhotosPutOrder($adOwnId, array_diff_key($this->photoSortQueue, $putErrors));
+        $this->photos = $this->syncPhotosPutOrder($adOwnId, array_merge(array_diff_key($this->photoSortQueue, $this->putPhotoErrors), $this->deletePhotoErrors));
 
-        return array(
-            'photos' => $photos,
-            'errors' => array_merge($deleteErrors, $getImageErrors, $putErrors)
-        );
+        return $this;
     }
 
     /**
@@ -131,16 +155,17 @@ class PhotoSyncService
      */
     private function buildPhotoQueues($forceImageDataUpdate)
     {
-        $getImageErrors = array();
-
         foreach ($this->localPhotosByOwnId as $ownId => $photoData) {
             //ha feltoltendo, mert nincs feltolve sajatid alapjan, vagy update szukseges
             if (!array_key_exists($ownId, $this->uploadedPhotosByOwnId) || $forceImageDataUpdate) {
                 //md5 check, full upload
                 try {
                     $imageData = $this->photoResizeService->getResizedPhotoData($photoData['location']);
-                    if ($this->needToPutPhoto($photoData, $imageData)) {
-                        $photoData['imageData'] = $imageData;
+                    $needToPutPhoto = $this->needToPutPhoto($photoData, $imageData);
+                    if ($needToPutPhoto != self::PUT_NOTNEEDED) {
+                        if (self::PUT_WITH_IMAGE_DATA == $needToPutPhoto) {
+                            $photoData['imageData'] = $imageData;
+                        }
                         $this->photoPutQueue[$ownId] = $photoData;
                     }
 
@@ -148,7 +173,7 @@ class PhotoSyncService
                 } catch (\Exception $e) {
                     $photoData['exception'] = $e;
                     $photoData['errorMessage'] = $e->getMessage();
-                    $getImageErrors[$ownId] = $photoData;
+                    $this->fetchPhotoErrors[$ownId] = $photoData;
                 }
             } else {
                 if ($this->arePhotosDifferent($this->uploadedPhotosByOwnId[$ownId], $photoData)) {
@@ -157,14 +182,12 @@ class PhotoSyncService
                 $this->photoSortQueue[$ownId] = $photoData;
             }
         }
-
-        return $getImageErrors;
     }
 
     /**
      * @param array $photoData
      * @param string $imageData
-     * @return bool
+     * @return int
      */
     private function needToPutPhoto($photoData, $imageData)
     {
@@ -174,14 +197,14 @@ class PhotoSyncService
         if (!array_key_exists($ownId, $this->uploadedPhotosByOwnId)
             || md5($imageData) != $this->uploadedPhotosByOwnId[$ownId]['md5Hash']
         ) {
-            return true;
+            return self::PUT_WITH_IMAGE_DATA;
         } elseif (array_key_exists($ownId, $this->uploadedPhotosByOwnId)) {
             if ($this->arePhotosDifferent($this->uploadedPhotosByOwnId[$ownId], $photoData)) {
-                return true;
+                return self::PUT_WITHOUT_IMAGE_DATA;
             }
         }
 
-        return false;
+        return self::PUT_NOTNEEDED;
     }
 
     /**
@@ -201,6 +224,12 @@ class PhotoSyncService
         return false;
     }
 
+    /**
+     * @param MultiTransferException $es
+     * @param array $photosByOwnId
+     * @return array
+     * @throws MultiTransferException
+     */
     private function parseMultiTransferException(MultiTransferException $es, array $photosByOwnId)
     {
         $errors = array();
@@ -208,12 +237,12 @@ class PhotoSyncService
             if ($e instanceof BadResponseException) {
                 try {
                     $error = $this->apiClient->parseResponse($e->getResponse());
-                } catch (JSendErrorException $jse) {
-                    $error = $jse->getJSendResponse()->getErrorMessage();
+                } catch (ServerErrorException $jse) {
+                    $error = 'Server error: ' . $jse->getJSendResponse()->getErrorMessage();
                 } catch (JSendFailException $jse) {
                     $error = $jse->getJSendResponse()->getData();
                 } catch (\UnexpectedValueException $uve) {
-                    $error = $e->getResponse()->getBody(true);
+                    $error = "JSON decode error";
                 }
 
                 $urlParts = explode('/photos/', $e->getRequest()->getUrl());
@@ -252,5 +281,45 @@ class PhotoSyncService
         }, $photosByOwnId);
 
         return $this->apiClient->putPhotoOrder($adOwnId, $order);
+    }
+
+    /**
+     * @return array
+     */
+    public function getFetchPhotoErrors()
+    {
+        return $this->fetchPhotoErrors;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeletePhotoErrors()
+    {
+        return $this->deletePhotoErrors;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPutPhotoErrors()
+    {
+        return $this->putPhotoErrors;
+    }
+
+    /**
+     * @return array
+     */
+    public function getErrors()
+    {
+        return array_merge($this->deletePhotoErrors, $this->fetchPhotoErrors, $this->putPhotoErrors);
+    }
+
+    /**
+     * @return array
+     */
+    public function getPhotos()
+    {
+        return $this->photos;
     }
 }

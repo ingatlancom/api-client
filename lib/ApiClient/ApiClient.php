@@ -13,10 +13,10 @@ use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\MultiTransferException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
-use IngatlanCom\ApiClient\Exception\JSendErrorException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
+use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Service\ClientFactoryService;
-use IngatlanCom\ApiClient\Service\PhotoSyncService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
 use Stash\Pool;
@@ -88,7 +88,7 @@ class ApiClient
      * @param string $username
      * @param string $password
      * @return string
-     * @throws \Exception
+     * @throws NotAuthenticatedException
      */
     private function callLogin($username, $password)
     {
@@ -97,10 +97,8 @@ class ApiClient
                 'username' => $username,
                 'password' => $password
             )));
-        } catch (JSendErrorException $e) {
-            throw new \Exception('Login error', 0, $e);
         } catch (JSendFailException $e) {
-            throw new \Exception('Login failed', 0, $e);
+            throw new NotAuthenticatedException('Login failed', 0, $e);
         }
 
         return $result['token'];
@@ -189,11 +187,11 @@ class ApiClient
      * @param array $photos
      * @param bool $forceImageDataUpdate
      * @param array|null $uploadedPhotos
-     * @return array
+     * @return PhotoSync
      */
     public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null)
     {
-        $service = new PhotoSyncService($this);
+        $service = new PhotoSync($this);
         return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos);
     }
 
@@ -321,7 +319,7 @@ class ApiClient
         if ($this->token) {
             $request->addHeader('Authorization', 'Bearer ' . $this->token);
         } elseif ('/auth/login' != $endpoint) {
-            throw new \Exception('Auth error');
+            throw new NotAuthenticatedException('Not authenticated');
         }
 
         return $request;
@@ -333,7 +331,7 @@ class ApiClient
      * @param string|null $body
      * @return array
      * @throws InvalidJSendException if JSend does not conform to spec
-     * @throws JSendErrorException
+     * @throws ServerErrorException
      * @throws JSendFailException
      */
     private function sendRequest($method, $endpoint, $body = null)
@@ -357,10 +355,7 @@ class ApiClient
     private function sendMultiRequest($requests)
     {
         if (count($requests)) {
-            $r0 = $requests[0];
-            $client = $r0->getClient();
-
-            $responses = $client->send($requests);
+            $responses = $this->client->send($requests);
 
             return $responses;
         }
@@ -371,7 +366,7 @@ class ApiClient
      * @param Response $response
      * @return array
      * @throws InvalidJSendException
-     * @throws JSendErrorException
+     * @throws ServerErrorException
      * @throws JSendFailException
      */
     public function parseResponse(Response $response)
@@ -379,11 +374,11 @@ class ApiClient
         $jsendResponse = JSendResponse::decode($response->getBody(true));
 
         if ($jsendResponse->isFail()) {
-            throw new JSendFailException('JSend fail', 0, null, $jsendResponse);
+            throw new JSendFailException('Call failed', 0, null, $jsendResponse);
         }
 
         if ($jsendResponse->isError()) {
-            throw new JSendErrorException('JSend error: ' . $jsendResponse->getErrorMessage(), 0, null, $jsendResponse);
+            throw new ServerErrorException($jsendResponse->getErrorMessage(), 0, null, $jsendResponse);
         }
 
         return $jsendResponse->getData();
