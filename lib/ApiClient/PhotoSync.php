@@ -43,12 +43,12 @@ class PhotoSync
     /**
      * @var array rendezendo kepek
      */
-    private $photoSortQueue;
+    private $photoSortQueue = array();
 
     /**
      * @var array feltoltendo kepek
      */
-    private $photoPutQueue;
+    private $photoPutQueue = array();
 
     /**
      * Kép file kezelés hibák
