@@ -1,0 +1,105 @@
+<?php
+
+namespace IngatlanCom\ApiClient\Service\Image;
+
+use Imagick;
+
+/**
+ * Class ImageImagick
+ *
+ * ImageMagick kép wrapper
+ *
+ * @package IngatlanCom\ApiClient\Service\Image
+ */
+class ImageImagick implements ImageInterface
+{
+    /**
+     * ImageMagick image
+     *
+     * @var Imagick
+     */
+    protected $img;
+
+    /**
+     * Konstruktor
+     *
+     * @param Imagick $img ImageMagick image
+     */
+    public function __construct(Imagick $img)
+    {
+        $this->img = $img;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function createFromBytes($imageBytes)
+    {
+        try {
+            $img = new \Imagick();
+            $img->readImageBlob($imageBytes);
+        } catch (\Exception $we) {
+            throw new ImageException('Hibás kép!');
+        }
+
+
+        return new static($img);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getWidth()
+    {
+        return $this->img->getImageWidth();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getHeight()
+    {
+        return $this->img->getImageHeight();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPixelColor($x, $y)
+    {
+        $colorObject = $this->img->getImagePixelColor($x, $y);
+
+        return $colorObject->getColor();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createResizedMaximizedImage($maxWidth, $maxHeight)
+    {
+        $img = $this->img->clone();
+        $img->resizeImage($maxWidth, $maxHeight, \Imagick::FILTER_LANCZOS, 1, true);
+
+        return new static($img);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJpegBytes()
+    {
+        return $this->img->getImageBlob();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function destroy()
+    {
+        if ($this->img) {
+            $this->img->destroy();
+        }
+
+        $this->img = null;
+    }
+}

@@ -1,17 +1,20 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: zooli
- * Date: 2015.11.13.
- * Time: 11:42
- */
 
 namespace IngatlanCom\ApiClient\Service;
 
-
 use Guzzle\Http\Client;
+use IngatlanCom\ApiClient\Service\Image\ImageGD;
+use IngatlanCom\ApiClient\Service\Image\ImageImagick;
+use IngatlanCom\ApiClient\Service\Image\ImageInterface;
 
-class PhotoResizeService
+/**
+ * Class PhotoResizeAbstractService
+ *
+ * Képátméretezés közös részei, pl. file műveletek
+ *
+ * @package IngatlanCom\ApiClient\Service
+ */
+class PhotoResizeService implements PhotoResizeServiceInterface
 {
     /**
      * Use GD
@@ -23,17 +26,22 @@ class PhotoResizeService
      */
     const LIB_IMAGICK = 2;
 
-    private $minWidth = 800;
-    private $minHeight = 600;
+    protected $minWidth = 800;
+    protected $minHeight = 600;
 
-    private $maxWidth = 800;
-    private $maxHeight = 600;
+    protected $maxWidth = 800;
+    protected $maxHeight = 600;
 
     /**
-     * @var integer PhotoResizeService::LIB_GD, PhotoResizeService::LIB_IMAGICK
+     * @var integer PhotoResizeService::LIB_GD vagy PhotoResizeService::LIB_IMAGICK osztálykonstansok
      */
-    private $imageLibrary;
+    protected $imageLibrary;
 
+    /**
+     * Konstruktor
+     *
+     * @param integer $imageLibrary PhotoResizeService::LIB_GD vagy default:PhotoResizeService::LIB_IMAGICK osztálykonstansok
+     */
     public function __construct($imageLibrary = null)
     {
         if (null === $imageLibrary) {
@@ -44,16 +52,18 @@ class PhotoResizeService
     }
 
     /**
-     * @param $location
-     * @return string
+     * Fotó átméretezés
+     *
+     * @param string $path kép elérési útvonal
+     * @return string kép byteok
      * @throws \Exception
      */
-    public function getResizedPhotoData($location)
+    public function getResizedPhotoData($path)
     {
-        if ('http' == substr(strtolower($location), 0, 4)) {
-            $contents = $this->downloadFileContents($location);
+        if ('http' == substr(strtolower($path), 0, 4)) {
+            $contents = $this->downloadFileContents($path);
         } else {
-            $contents = file_get_contents($location);
+            $contents = file_get_contents($path);
         }
 
         $fileData = $this->resizePhoto($contents);
@@ -72,64 +82,18 @@ class PhotoResizeService
     /**
      * Szürkeárnyalatos-e a kép (pl. alaprajz "fekete-fehér-e"?)
      *
-     * @param \Imagick|resource $img
+     * @param ImageInterface $img
      * @param float $tolerancePercentage default 95 (%)
      * @return boolean
      */
-    private function isGrayScale($img, $tolerancePercentage = 95.0)
+    private function isGrayScale(ImageInterface $img, $tolerancePercentage = 95.0)
     {
-        return ($img instanceof \Imagick) ? $this->isGrayScaleImagick($img, $tolerancePercentage) : $this->isGrayScaleGD($img, $tolerancePercentage);
-    }
-
-    /**
-     * GD-vel: Szürkeárnyalatos-e a kép (pl. alaprajz "fekete-fehér-e"?)
-     *
-     * @param \Imagick $img
-     * @param float $tolerancePercentage default 95 (%)
-     * @return boolean
-     */
-    private function isGrayScaleImagick($img, $tolerancePercentage = 95.0)
-    {
-        $width = $img->getImageWidth();
-        $height = $img->getImageHeight();
+        $width = $img->getWidth();
+        $height = $img->getHeight();
         $grayPixelCount = 0;
         for ($x = 0; $x < $width; $x++) {
             for ($y = 0; $y < $height; $y++) {
-                $colorObject = $img->getImagePixelColor($x, $y);
-                $color = $colorObject->getColor();
-
-                if ($color['r'] == $color['g'] && $color['r'] == $color['b']) {
-                    $grayPixelCount++;
-                }
-            }
-        }
-
-        // Legalább $tolerance százalékban szürke-e?
-        return $grayPixelCount > $width * $height * $tolerancePercentage / 100;
-    }
-
-    /**
-     * ImageMagick-kel: Szürkeárnyalatos-e a kép (pl. alaprajz "fekete-fehér-e"?)
-     *
-     * @param resource $img
-     * @param float $tolerancePercentage default 95 (%)
-     * @return boolean
-     */
-    private function isGrayScaleGD($img, $tolerancePercentage = 95.0)
-    {
-        $width = imagesx($img);
-        $height = imagesy($img);
-        $grayPixelCount = 0;
-        for ($x = 0; $x < $width; $x++) {
-            for ($y = 0; $y < $height; $y++) {
-                $rgb = imagecolorat($img, $x, $y);
-                // extract each value for r, g, b
-                $color = array(
-                    'r' => ($rgb >> 16) & 0xFF,
-                    'g' => ($rgb >> 8) & 0xFF,
-                    'b' => $rgb & 0xFF
-                );
-
+                $color = $img->getPixelColor($x, $y);
                 if ($color['r'] == $color['g'] && $color['r'] == $color['b']) {
                     $grayPixelCount++;
                 }
@@ -143,20 +107,14 @@ class PhotoResizeService
     /**
      * Méretvalidációk
      *
-     * @param \Imagick|resource $img
+     * @param ImageInterface $img
      * @throws \Exception
      * @return array $img, $width, $height
      */
     private function validate($img)
     {
-        if (static::LIB_IMAGICK == $this->imageLibrary) {
-            $width = $img->getImageWidth();
-            $height = $img->getImageHeight();
-        } else {
-            $width = imagesx($img);
-            $height = imagesy($img);
-        }
-
+        $width = $img->getWidth();
+        $height = $img->getHeight();
         if ($width < $this->minWidth && $height < $this->minHeight) {
             if (450 == $width && 450 == $height) {
                 if (!$this->isGrayScale($img)) {
@@ -175,69 +133,42 @@ class PhotoResizeService
      * Kép betöltése
      *
      * @param $imageData
-     * @return \Imagick|resource|resource Imagick or GD resource
-     * @throws \Exception
+     * @return \IngatlanCom\ApiClient\Service\Image\ImageInterface
      */
     private function loadImage($imageData)
     {
         if (static::LIB_IMAGICK == $this->imageLibrary) {
-            try {
-                $img = new \Imagick();
-                $img->readImageBlob($imageData);
-            } catch (\Exception $we) {
-                throw new \Exception('Hibás kép!');
-            }
+            $img = ImageImagick::createFromBytes($imageData);
         } else {
-            $img = \imagecreatefromstring($imageData);
-            if (false === $img) {
-                throw new \Exception('Hibás kép!');
-            }
+            $img = ImageGD::createFromBytes($imageData);
         }
 
-        $result = $this->validate($img);
+        $this->validate($img);
 
-        return $result;
+        return $img;
     }
 
+    /**
+     * Kép átméretezése
+     *
+     * @param string $imageData forrás kép byteok
+     * @return string átméretezett kép byteok
+     */
     private function resizePhoto($imageData)
     {
-        list($img, $width, $height) = $this->loadImage($imageData);
+        $img = $this->loadImage($imageData);
+        $width = $img->getWidth();
+        $height = $img->getHeight();
 
         if ($width > $this->maxWidth || $height > $this->maxHeight) {
-            if ($img instanceof \Imagick) {
-                $img->resizeImage($this->maxWidth, $this->maxHeight, \Imagick::FILTER_LANCZOS, 1, true);
-                $imageData = $img->getImageBlob();
-            } else {
-                $newWidth = $width;
-                $newHeight = $height;
-                if ($newHeight > $this->maxHeight) {
-                    $newWidth = ($this->maxHeight / $newHeight) * $newWidth;
-                    $newHeight = $this->maxHeight;
-                }
-                if ($newWidth > $this->maxWidth) {
-                    $newHeight = ($this->maxWidth / $newWidth) * $newHeight;
-                    $newWidth = $this->maxWidth;
-                }
-                $newImg = imagecreatetruecolor($width, $height);
-                imagecopyresampled($newImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                imagedestroy($img);
-                $img = $newImg;
-                ob_start();
-                imagejpeg($newImg);
-                $imageData = ob_get_contents();
-                imagedestroy($newImg);
-            }
+            $resizedImg = $img->createResizedMaximizedImage($this->maxWidth, $this->maxHeight);
+            $img->destroy();
+            $img = $resizedImg;
         }
 
-        // Memória felszabadítása
-        if (isset($img)) {
-            if ($img instanceof \Imagick) {
-                $img->clear();
-                $img->destroy();
-            } elseif (is_resource($img)) {
-                imagedestroy($img);
-            }
-        }
+        $imageData = $img->getJpegBytes();
+
+        $img->destroy();
 
         return $imageData;
     }
