@@ -77,7 +77,7 @@ class ImageImagick implements ImageInterface
      */
     public function createResizedMaximizedImage($maxWidth, $maxHeight)
     {
-        $img = $this->img->clone();
+        $img = clone $this->img;
         $img->resizeImage($maxWidth, $maxHeight, \Imagick::FILTER_LANCZOS, 1, true);
 
         return new static($img);
