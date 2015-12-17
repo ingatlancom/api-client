@@ -104,7 +104,10 @@ class ImageGD implements ImageInterface
         ob_start();
         imagejpeg($this->img);
 
-        return ob_get_contents();
+        $imageData = ob_get_contents();
+        ob_end_clean();
+
+        return $imageData;
     }
 
     /**
