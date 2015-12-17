@@ -97,9 +97,11 @@ class PhotoSync
      * @param array $photos
      * @param bool $forceImageDataUpdate
      * @param array|null $uploadedPhotos
+     * @param bool $paralellDownload
      * @return PhotoSync
+     * @throws MultiTransferException
      */
-    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null)
+    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
     {
         if (null === $uploadedPhotos) {
             $uploadedPhotos = $this->apiClient->getPhotos($adOwnId);
@@ -114,12 +116,10 @@ class PhotoSync
             $this->apiClient->deletePhotosMulti($adOwnId, $photosToDelete);
         } catch (MultiTransferException $e) {
             $this->deletePhotoErrors = $this->parseMultiTransferException($e, $photosToDelete);
-            //TODO: ha delete error van, akkor a sort queue-be is bele kell tenni, vagy el kell szallni!
-            //megoldas: megyunk tovabb ha nem sikerul torolni. sorrendezesnel: ?bence
         }
 
         //fetch image data, diff with uploaded
-        $this->buildPhotoQueues($forceImageDataUpdate);
+        $this->buildPhotoQueues($forceImageDataUpdate, $paralellDownload);
 
         //put
         try {
@@ -151,34 +151,52 @@ class PhotoSync
 
     /**
      * @param bool $forceImageDataUpdate
+     * @param bool $paralellDownload
      * @return array errors
      */
-    private function buildPhotoQueues($forceImageDataUpdate)
+    private function buildPhotoQueues($forceImageDataUpdate, $paralellDownload)
     {
+        $downloadQueue = array();
+
         foreach ($this->localPhotosByOwnId as $ownId => $photoData) {
             //ha feltoltendo, mert nincs feltolve sajatid alapjan, vagy update szukseges
             if (!array_key_exists($ownId, $this->uploadedPhotosByOwnId) || $forceImageDataUpdate) {
-                //md5 check, full upload
-                try {
-                    $imageData = $this->photoResizeService->getResizedPhotoData($photoData['location']);
-                    $needToPutPhoto = $this->needToPutPhoto($photoData, $imageData);
-                    if ($needToPutPhoto != self::PUT_NOTNEEDED) {
-                        if (self::PUT_WITH_IMAGE_DATA == $needToPutPhoto) {
-                            $photoData['imageData'] = $imageData;
-                        }
-                        $this->photoPutQueue[$ownId] = $photoData;
-                    }
-
-                    $this->photoSortQueue[$ownId] = $photoData;
-                } catch (\Exception $e) {
-                    $photoData['exception'] = $e;
-                    $photoData['errorMessage'] = $e->getMessage();
-                    $this->fetchPhotoErrors[$ownId] = $photoData;
-                }
+                $downloadQueue[$ownId] = $photoData;
             } else {
                 if ($this->arePhotosDifferent($this->uploadedPhotosByOwnId[$ownId], $photoData)) {
                     $this->photoPutQueue[$ownId] = $photoData;
                 }
+                $this->photoSortQueue[$ownId] = $photoData;
+            }
+        }
+
+        $this->downloadPhotosToQueues($downloadQueue, $paralellDownload);
+    }
+
+    /**
+     * @param array $photos
+     * @param bool $paralellDownload
+     */
+    private function downloadPhotosToQueues(array $photos, $paralellDownload)
+    {
+        $imageDatas = $this->photoResizeService->getResizedPhotosData($photos, $paralellDownload);
+
+        foreach ($imageDatas as $ownId => $imageData) {
+            $photoData = $this->localPhotosByOwnId[$ownId];
+            if ($imageData instanceof \Exception) {
+                $photoData['exception'] = $imageData;
+                $photoData['errorMessage'] = $imageData->getMessage();
+                $this->fetchPhotoErrors[$ownId] = $photoData;
+            } else {
+                //md5 check, full upload
+                $needToPutPhoto = $this->needToPutPhoto($photoData, $imageData);
+                if ($needToPutPhoto != self::PUT_NOTNEEDED) {
+                    if (self::PUT_WITH_IMAGE_DATA == $needToPutPhoto) {
+                        $photoData['imageData'] = $imageData;
+                    }
+                    $this->photoPutQueue[$ownId] = $photoData;
+                }
+
                 $this->photoSortQueue[$ownId] = $photoData;
             }
         }

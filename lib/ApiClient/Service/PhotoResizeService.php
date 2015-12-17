@@ -3,6 +3,10 @@
 namespace IngatlanCom\ApiClient\Service;
 
 use Guzzle\Http\Client;
+use Guzzle\Http\Exception\BadResponseException;
+use Guzzle\Http\Exception\MultiTransferException;
+use Guzzle\Http\Message\Request;
+use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\Image\ImageGD;
 use IngatlanCom\ApiClient\Service\Image\ImageImagick;
 use IngatlanCom\ApiClient\Service\Image\ImageInterface;
@@ -31,6 +35,11 @@ class PhotoResizeService implements PhotoResizeServiceInterface
 
     protected $maxWidth = 800;
     protected $maxHeight = 600;
+
+    /**
+     * @var Client
+     */
+    protected $client;
 
     /**
      * @var integer PhotoResizeService::LIB_GD vagy PhotoResizeService::LIB_IMAGICK osztálykonstansok
@@ -71,6 +80,50 @@ class PhotoResizeService implements PhotoResizeServiceInterface
         return $fileData;
     }
 
+
+    public function getResizedPhotosData($photosByOwnId, $multi = false)
+    {
+        $results = array();
+        $client = $this->getClient();
+        $requests = array();
+
+        foreach ($photosByOwnId as $ownId => $photo) {
+            $path = $photo['location'];
+
+            if ($multi && 'http' == substr(strtolower($path), 0, 4)) {
+                $requests[$ownId] = $client->get($path);
+            } else {
+                try {
+                    $results[$ownId] = $this->getResizedPhotoData($path);
+                } catch (\Exception $e) {
+                    $results[$ownId] = $e;
+                }
+            }
+        }
+
+        if (count($requests)) {
+            try {
+                $client->send($requests);
+            } catch (MultiTransferException $e) {
+            }
+
+            /** @var Request $request */
+            foreach ($requests as $ownId => $request) {
+                if ($request->getResponse()->isError()) {
+                    $results[$ownId] = BadResponseException::factory($request, $request->getResponse());
+                } else {
+                    try {
+                        $results[$ownId] = $this->resizePhoto($request->getResponse()->getBody(true));
+                    } catch (\Exception $e) {
+                        $results[$ownId] = $e;
+                    }
+                }
+            }
+        }
+
+        return $results;
+    }
+
     private function downloadFileContents($url)
     {
         $client = new Client();
@@ -108,7 +161,7 @@ class PhotoResizeService implements PhotoResizeServiceInterface
      * Méretvalidációk
      *
      * @param ImageInterface $img
-     * @throws \Exception
+     * @throws ImageException
      * @return array $img, $width, $height
      */
     private function validate($img)
@@ -119,10 +172,10 @@ class PhotoResizeService implements PhotoResizeServiceInterface
             if (450 == $width && 450 == $height) {
                 if (!$this->isGrayScale($img)) {
                     $msg = '450x450 pixel méretű alaprajzokat kérjük, a http://alaprajz.ingatlan.com oldalon készítsen!';
-                    throw new \Exception($msg);
+                    throw new ImageException($msg);
                 }
             } else {
-                throw new \Exception('Ön 800x600 pixelnél kisebb képet próbált meg feltölteni. Kérjük, hogy töltsön fel legalább 800x600 pixel felbontású képet.');
+                throw new ImageException('Ön 800x600 pixelnél kisebb képet próbált meg feltölteni. Kérjük, hogy töltsön fel legalább 800x600 pixel felbontású képet.');
             }
         }
 
@@ -171,6 +224,15 @@ class PhotoResizeService implements PhotoResizeServiceInterface
         $img->destroy();
 
         return $imageData;
+    }
+
+    public function getClient()
+    {
+        if (!isset($this->client)) {
+            $this->client = new Client();
+        }
+
+        return $this->client;
     }
 
 }
