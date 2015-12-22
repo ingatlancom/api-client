@@ -279,12 +279,12 @@ class ApiClient
      *
      * @param string $adOwnId hirdetés saját azonosítója
      * @param string $photoId fotó saját azonosítója
-     * @return array törölt fotó adatai
+     * @return bool sikeres törlés
      */
     public function deletePhoto($adOwnId, $photoId)
     {
-        $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
-        return $result['photo'];
+        $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
+        return true;
     }
 
     /**
