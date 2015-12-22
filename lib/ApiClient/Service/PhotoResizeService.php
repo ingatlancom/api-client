@@ -6,6 +6,7 @@ use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\MultiTransferException;
 use Guzzle\Http\Message\Request;
+use Guzzle\Http\Message\RequestInterface;
 use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\Image\ImageGD;
 use IngatlanCom\ApiClient\Service\Image\ImageImagick;
@@ -78,6 +79,9 @@ class PhotoResizeService
             $contents = $response->getBody(true);
         } else {
             $contents = file_get_contents($path);
+            if (false === $contents) {
+                throw new ImageException('Photo not found: ' . $path);
+            }
         }
 
         $fileData = $this->resizePhoto($contents);
@@ -110,6 +114,21 @@ class PhotoResizeService
                 }
             }
         }
+
+        $results = $results + $this->getResizedPhotosDataByRequests($requests);
+
+        return $results;
+    }
+
+    /**
+     * Párhuzamos képletöltés
+     *
+     * @param RequestInterface[] $requests
+     * @return array fotó byte-ok|Exception-ok fotó saját azonosító szerint
+     */
+    private function getResizedPhotosDataByRequests($requests)
+    {
+        $results = array();
 
         if (count($requests)) {
             try {

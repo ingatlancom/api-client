@@ -14,7 +14,7 @@ interface ImageInterface
     /**
      * Kép betöltése adatokból
      *
-     * @param $imageBytes
+     * @param string $imageBytes
      * @return ImageInterface
      * @throws ImageException
      */
@@ -37,17 +37,17 @@ interface ImageInterface
     /**
      * Pixel színe
      *
-     * @param $x
-     * @param $y
-     * @return array kulcsok: r, g, b
+     * @param int $x
+     * @param int $y
+     * @return array kulcsok: r, g, bTag value indented incorrectly; expecte
      */
     public function getPixelColor($x, $y);
 
     /**
      * Átméretezett kép elkészítése
      *
-     * @param $maxWidth
-     * @param $maxHeight
+     * @param int $maxWidth
+     * @param int $maxHeight
      * @return ImageInterface
      */
     public function createResizedMaximizedImage($maxWidth, $maxHeight);
