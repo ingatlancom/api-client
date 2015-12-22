@@ -2,8 +2,6 @@
 
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
-require_once('PhotoResizeServiceTestAbstract.php');
-
 /**
  * Photo Resize tests with Imagick
  */

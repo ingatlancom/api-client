@@ -7,18 +7,24 @@ use IngatlanCom\ApiClient\Service\PhotoResizeService;
 class PhotoResizeServiceParalellDownloadTest extends \Guzzle\Tests\GuzzleTestCase
 {
     /**
+     * @var ClientFactoryMockService
+     */
+    private $clientFactoryService;
+
+    /**
      * @var PhotoResizeService
      */
     private $service;
 
     public function setUp()
     {
-        $this->service = new PhotoResizeService();
+        $this->clientFactoryService = new ClientFactoryMockService();
+        $this->service = new PhotoResizeService(null, $this->clientFactoryService);
     }
 
     public function testGetResizedPhotos()
     {
-        $this->setMockResponse($this->service->getClient(), array(
+        $this->setMockResponse($this->clientFactoryService->getClient(), array(
             new \Guzzle\Http\Message\Response(200, null, file_get_contents(__DIR__ . '/mock/photos/1.jpg')),
             new \Guzzle\Http\Message\Response(200, null, file_get_contents(__DIR__ . '/mock/photos/toosmall.png')),
             new \Guzzle\Http\Message\Response(404)

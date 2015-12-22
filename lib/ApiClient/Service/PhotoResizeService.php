@@ -14,11 +14,11 @@ use IngatlanCom\ApiClient\Service\Image\ImageInterface;
 /**
  * Class PhotoResizeAbstractService
  *
- * Képátméretezés közös részei, pl. file műveletek
+ * Képátméretezés közös részei, pl. file műveletek, file letöltés
  *
  * @package IngatlanCom\ApiClient\Service
  */
-class PhotoResizeService implements PhotoResizeServiceInterface
+class PhotoResizeService
 {
     /**
      * Use GD
@@ -39,7 +39,7 @@ class PhotoResizeService implements PhotoResizeServiceInterface
     /**
      * @var Client
      */
-    protected $client;
+    private $client;
 
     /**
      * @var integer PhotoResizeService::LIB_GD vagy PhotoResizeService::LIB_IMAGICK osztálykonstansok
@@ -50,14 +50,18 @@ class PhotoResizeService implements PhotoResizeServiceInterface
      * Konstruktor
      *
      * @param integer $imageLibrary PhotoResizeService::LIB_GD vagy default:PhotoResizeService::LIB_IMAGICK osztálykonstansok
+     * @param ClientFactoryService $clientFactoryService Guzzle kliens factory
      */
-    public function __construct($imageLibrary = null)
+    public function __construct($imageLibrary = null, ClientFactoryService $clientFactoryService = null)
     {
         if (null === $imageLibrary) {
             $imageLibrary = extension_loaded('imagick') ? static::LIB_IMAGICK : static::LIB_GD;
         }
 
         $this->imageLibrary = $imageLibrary;
+
+        $clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
+        $this->client = $clientFactoryService->getClient();
     }
 
     /**
@@ -70,7 +74,8 @@ class PhotoResizeService implements PhotoResizeServiceInterface
     public function getResizedPhotoData($path)
     {
         if ('http' == substr(strtolower($path), 0, 4)) {
-            $contents = $this->downloadFileContents($path);
+            $response = $this->client->get($path)->send();
+            $contents = $response->getBody(true);
         } else {
             $contents = file_get_contents($path);
         }
@@ -80,18 +85,23 @@ class PhotoResizeService implements PhotoResizeServiceInterface
         return $fileData;
     }
 
-
-    public function getResizedPhotosData($photosByOwnId, $multi = false)
+    /**
+     * Képek letöltése, átméretezése
+     *
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @return array fotó byte-ok|Exception-ok fotó saját azonosító szerint
+     */
+    public function getResizedPhotosData(array $photosByOwnId, $paralellDownload = false)
     {
         $results = array();
-        $client = $this->getClient();
         $requests = array();
 
         foreach ($photosByOwnId as $ownId => $photo) {
             $path = $photo['location'];
 
-            if ($multi && 'http' == substr(strtolower($path), 0, 4)) {
-                $requests[$ownId] = $client->get($path);
+            if ($paralellDownload && 'http' == substr(strtolower($path), 0, 4)) {
+                $requests[$ownId] = $this->client->get($path);
             } else {
                 try {
                     $results[$ownId] = $this->getResizedPhotoData($path);
@@ -103,7 +113,7 @@ class PhotoResizeService implements PhotoResizeServiceInterface
 
         if (count($requests)) {
             try {
-                $client->send($requests);
+                $this->client->send($requests);
             } catch (MultiTransferException $e) {
             }
 
@@ -122,14 +132,6 @@ class PhotoResizeService implements PhotoResizeServiceInterface
         }
 
         return $results;
-    }
-
-    private function downloadFileContents($url)
-    {
-        $client = new Client();
-        $response = $client->get($url)->send();
-
-        return $response->getBody(true);
     }
 
     /**
@@ -225,14 +227,4 @@ class PhotoResizeService implements PhotoResizeServiceInterface
 
         return $imageData;
     }
-
-    public function getClient()
-    {
-        if (!isset($this->client)) {
-            $this->client = new Client();
-        }
-
-        return $this->client;
-    }
-
 }

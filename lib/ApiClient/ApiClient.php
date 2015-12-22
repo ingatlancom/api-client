@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: zooli
- * Date: 2015.10.26.
- * Time: 16:27
- */
 
 namespace IngatlanCom\ApiClient;
 
@@ -21,6 +15,13 @@ use JSend\InvalidJSendException;
 use JSend\JSendResponse;
 use Stash\Pool;
 
+/**
+ * Class ApiClient
+ *
+ * ingatlan.com API kliens
+ *
+ * @package IngatlanCom\ApiClient
+ */
 class ApiClient
 {
     const APIVERSION = 1;
@@ -33,16 +34,16 @@ class ApiClient
     private $stashPool;
 
     /**
-     * @var Client
+     * @var Client Guzzle Client az API kapcsolódáshoz
      */
     private $client;
 
     /**
      * ApiClient constructor.
      *
-     * @param string $apiUrl
-     * @param Pool $stashPool
-     * @param ClientFactoryService $clientFactoryService
+     * @param string $apiUrl ingatlan.com API url
+     * @param Pool $stashPool Stash példány az authentikációs token tárolására
+     * @param ClientFactoryService $clientFactoryService Guzzle kliens factory
      */
     public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
     {
@@ -51,6 +52,13 @@ class ApiClient
         $this->client = $clientFactoryService->getClient($apiUrl);
     }
 
+    /**
+     * Bejelentkezés
+     *
+     * @param string $username
+     * @param string $password
+     * @throws NotAuthenticatedException
+     */
     public function login($username, $password)
     {
         if (null == $this->token) {
@@ -59,13 +67,16 @@ class ApiClient
     }
 
     /**
-     * @param string $username
-     * @param string $password
-     * @return string
-     * @throws \Exception
+     * Authentikációs token lekérése a cache-ből, vagy a szervertől.
+     *
+     * @param string $username felhasználónév
+     * @param string $password jelszó
+     * @return string JWT token
+     * @throws NotAuthenticatedException
      */
     private function getToken($username, $password)
     {
+        //TODO: letárolni tovább, nézni h érvényes-e
         if ($this->stashPool) {
             $item = $this->stashPool->getItem($username . 'Token');
             if (!$item->isMiss()) {
@@ -85,9 +96,11 @@ class ApiClient
     }
 
     /**
-     * @param string $username
-     * @param string $password
-     * @return string
+     * API bejelentkezés meghívása
+     *
+     * @param string $username felhasználónév
+     * @param string $password jelszó
+     * @return string JWT token
      * @throws NotAuthenticatedException
      */
     private function callLogin($username, $password)
@@ -105,51 +118,58 @@ class ApiClient
     }
 
     /**
-     * @param array $ad
-     * @return array
+     * Hirdetés feladása/módosítása
+     *
+     * @param array $ad hirdetésadatok
+     * @return array a feladott hirdetés adatai
+     * @throws JSendFailException
      */
     public function putAd(array $ad)
     {
         $result = $this->sendRequest(RequestInterface::PUT, '/ads/' . $ad['ownId'], json_encode($ad));
-        return $result;
+        return $result['ad'];
     }
 
     /**
-     * @param $adOwnId
-     * @return array
+     * Hirdetés lekérése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @return array hirdetés adatai
      */
     public function getAd($adOwnId)
     {
         $result = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId);
 
-        return $result;
+        return $result['ad'];
     }
 
     /**
-     * @param $adOwnId
-     * @return array
+     * Hirdetés törlése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @return array törölt hirdetés adatai
      */
     public function deleteAd($adOwnId)
     {
         $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId);
-        return $result;
+        return $result['ad'];
     }
 
     /**
-     * visszaadja az iroda összes hirdetésének ID-it
+     * visszaadja az iroda összes hirdetésének azonosítóit (ingatlan.com-os és saját azonosítót)
      *
-     * @return JSendResponse
+     * @return array hirdetés ID-k
      */
     public function getAdIds()
     {
-        $ids = $this->sendRequest(RequestInterface::GET, '/ads/ids');
+        $data = $this->sendRequest(RequestInterface::GET, '/ads/ids');
 
-        return $ids;
+        return $data['ids'];
     }
 
     /**
      * iroda ingatlan.com-on lévő hirdetéseit szinkronba hozza az iroda saját rendszerében lévő hirdetésekkel
-     * (kitölri az ingatlan.com-ról azokat a hirdetéseket, amik már nincsenek meg az iroda saját rendszerében)
+     * (kitörli az ingatlan.com-ról azokat a hirdetéseket, amik már nincsenek meg az iroda saját rendszerében)
      *
      * @param array $adIds az iroda saját rendszerében lévő összes hirdetés ID-ja
      * @return array a törölt hirdetések ID-i
@@ -158,13 +178,13 @@ class ApiClient
     public function syncAds(array $adIds)
     {
         try {
-            $data = $this->getAdIds();
-        }catch (\Exception $e) {
+            $ids = $this->getAdIds();
+        } catch (\Exception $e) {
             throw new \Exception('A hirdetés ID-k lekérése nem sikerült', 0, $e);
         }
 
         $ownIds = array_reduce(
-            $data['ids'],
+            $ids,
             function ($carry, $item) {
                 if ($item['ownId'] && 0 == $item['statusId']) {
                     $carry[] = $item['ownId'];
@@ -183,10 +203,7 @@ class ApiClient
     }
 
     /**
-     * @param $adOwnId
-     * @param array $photos
-     * @param bool $forceImageDataUpdate
-     * @param array|null $uploadedPhotos
+     * @see PhotoSync::syncPhotos()
      * @return PhotoSync
      */
     public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null)
@@ -196,8 +213,10 @@ class ApiClient
     }
 
     /**
-     * @param string $adOwnId
-     * @param array $photoData
+     * Fotó feltöltés Request létrehozása
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param array $photoData fotó adatok
      * @return RequestInterface
      */
     private function createPhotoPutRequest($adOwnId, array $photoData)
@@ -216,9 +235,12 @@ class ApiClient
     }
 
     /**
-     * @param string $adOwnId
-     * @param array $photoData
-     * @return JSendResponse
+     * Fotó feltöltése/módosítása
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param array $photoData fotó adatok
+     * @return array feltöltött fotó adatok
+     * @throws JSendFailException
      */
     public function putPhoto($adOwnId, array $photoData)
     {
@@ -231,60 +253,14 @@ class ApiClient
 
         $response = $this->parseResponse($response);
 
-        return $response;
+        return $response['photo'];
     }
 
     /**
-     * @param string $adOwnId
-     * @param string $photoId
-     * @return array
-     */
-    public function deletePhoto($adOwnId, $photoId)
-    {
-        $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
-        return $result;
-    }
-
-    /**
-     * @param string $adOwnId
-     * @return array
-     */
-    public function getPhotos($adOwnId)
-    {
-        $photos = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId . '/photos');
-        return $photos['photos'];
-    }
-
-    /**
-     * @param string $adOwnId
-     * @param array $photoOwnIds
-     * @return array
-     */
-    public function putPhotoOrder($adOwnId, $photoOwnIds)
-    {
-        $photos = $this->sendRequest(RequestInterface::PUT, '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
-        return $photos['photos'];
-    }
-
-    /**
-     * @param string $adOwnId
-     * @param array $photosByOwnId
-     * @return array
-     * @throws MultiTransferException
-     */
-    public function deletePhotosMulti($adOwnId, array $photosByOwnId)
-    {
-        $requests = array();
-        foreach (array_keys($photosByOwnId) as $photoOwnIdToDelete) {
-            $requests[] = $this->getRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
-        }
-
-        return $this->sendMultiRequest($requests);
-    }
-
-    /**
-     * @param string $adOwnId
-     * @param array $photosByOwnId
+     * Hirdetés fotóinak feltöltése, több szálon
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return Response[]
      * @throws MultiTransferException
      */
@@ -298,13 +274,70 @@ class ApiClient
         return $this->sendMultiRequest($requests);
     }
 
+    /**
+     * Fotó törlése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param string $photoId fotó saját azonosítója
+     * @return array törölt fotó adatai
+     */
+    public function deletePhoto($adOwnId, $photoId)
+    {
+        $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
+        return $result['photo'];
+    }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param string|null $body
+     * Hirdetés fotóinak törlése, több szálon
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @return Response[]
+     * @throws MultiTransferException
+     */
+    public function deletePhotosMulti($adOwnId, array $photosByOwnId)
+    {
+        $requests = array();
+        foreach (array_keys($photosByOwnId) as $photoOwnIdToDelete) {
+            $requests[] = $this->getRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
+        }
+
+        return $this->sendMultiRequest($requests);
+    }
+
+    /**
+     * Hirdetés fotóinak lekérése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @return array fotók adatai
+     */
+    public function getPhotos($adOwnId)
+    {
+        $photos = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId . '/photos');
+        return $photos['photos'];
+    }
+
+    /**
+     * Hirdetés képeinek sorrendezése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @param array $photoOwnIds fotók saját azonosítója, kívánt sorrendben
+     * @return array hirdetés fotói
+     */
+    public function putPhotoOrder($adOwnId, $photoOwnIds)
+    {
+        $photos = $this->sendRequest(RequestInterface::PUT, '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
+        return $photos['photos'];
+    }
+
+    /**
+     * Guzzle Request előállítása az API-nak megfelelő headerekkel
+     *
+     * @param string $method HTTP method
+     * @param string $endpoint path
+     * @param string|null $body content
      * @return RequestInterface
-     * @throws \Exception
+     * @throws NotAuthenticatedException
      */
     private function getRequest($method, $endpoint, $body = null)
     {
@@ -326,9 +359,11 @@ class ApiClient
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param string|null $body
+     * Request legyártás, elküldés, válasz feldolgozás
+     *
+     * @param string $method HTTP method
+     * @param string $endpoint path
+     * @param string|null $body content
      * @return array
      * @throws InvalidJSendException if JSend does not conform to spec
      * @throws ServerErrorException
@@ -348,6 +383,8 @@ class ApiClient
     }
 
     /**
+     * Request-ek párhuzamos elküldése
+     *
      * @param RequestInterface[] $requests
      * @return Response[]
      * @throws MultiTransferException
@@ -363,6 +400,8 @@ class ApiClient
     }
 
     /**
+     * API válasz feldolgozása
+     *
      * @param Response $response
      * @return array
      * @throws InvalidJSendException

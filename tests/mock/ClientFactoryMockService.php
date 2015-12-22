@@ -1,11 +1,5 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: zooli
- * Date: 2015.11.25.
- * Time: 14:00
- */
 class ClientFactoryMockService extends \IngatlanCom\ApiClient\Service\ClientFactoryService
 {
     /**

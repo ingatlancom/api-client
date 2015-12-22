@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: zooli
- * Date: 2015.11.19.
- * Time: 11:37
- */
 
 namespace IngatlanCom\ApiClient;
 
@@ -14,6 +8,23 @@ use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
+/**
+ * Class PhotoSync
+ *
+ * hirdetés fotóit szinkronba hozza az iroda saját rendszerében lévőkkel
+ * feltölti, ami még nincs meg az ingatlan.com rendszerében
+ * kitörli, ami nincs meg már az irodánál
+ * rendberakja a sorrendet
+ *
+ * A képadatok struktúrája
+ *  ownId (string) kép egyedi azonosítója az iroda rendszerében
+ *  title (string) kép felirat
+ *  order (int) kép sorrend
+ *  labelId (int) képfelirat azonosító
+ *  location (string) képfájl elérési útja, http vagy fájlrendszer
+ *
+ * @package IngatlanCom\ApiClient
+ */
 class PhotoSync
 {
     const PUT_WITH_IMAGE_DATA = 2;
@@ -31,22 +42,26 @@ class PhotoSync
     private $photoResizeService;
 
     /**
+     * iroda rendszerében levő fotók
      * @var array
      */
     private $localPhotosByOwnId;
 
     /**
+     * ingatlan.com rendszerében levő képek
      * @var array
      */
     private $uploadedPhotosByOwnId;
 
     /**
-     * @var array rendezendo kepek
+     * rendezendő kepek
+     * @var array
      */
     private $photoSortQueue = array();
 
     /**
-     * @var array feltoltendo kepek
+     * feltoltendő képek
+     * @var array
      */
     private $photoPutQueue = array();
 
@@ -69,7 +84,7 @@ class PhotoSync
     private $putPhotoErrors = array();
 
     /**
-     * Képek
+     * Képszinkron eredménye, feltöltött képek
      * @var array
      */
     private $photos;
@@ -86,18 +101,13 @@ class PhotoSync
     }
 
     /**
-     * $photos tomb elemei:
-     * ownId
-     * title
-     * order
-     * labelId
-     * location
+     * A teljes szinkronizálási folyamat
      *
-     * @param string $adOwnId
-     * @param array $photos
-     * @param bool $forceImageDataUpdate
-     * @param array|null $uploadedPhotos
-     * @param bool $paralellDownload
+     * @param string $adOwnId hirdetés saját azonosító
+     * @param array $photos iroda rendszerében levő fotók adatai
+     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return PhotoSync
      * @throws MultiTransferException
      */
@@ -135,8 +145,10 @@ class PhotoSync
     }
 
     /**
-     * @param array $array
-     * @param string $field
+     * Tömbből asszociatív tömböt készít valamely mező alapján
+     *
+     * @param array $array tömb
+     * @param string $field mező
      * @return array
      */
     private function mapArrayByField(array $array, $field)
@@ -150,8 +162,10 @@ class PhotoSync
     }
 
     /**
-     * @param bool $forceImageDataUpdate
-     * @param bool $paralellDownload
+     * fotó feltöltési és rendezési sorok létrehozása
+     *
+     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return array errors
      */
     private function buildPhotoQueues($forceImageDataUpdate, $paralellDownload)
@@ -174,12 +188,15 @@ class PhotoSync
     }
 
     /**
-     * @param array $photos
-     * @param bool $paralellDownload
+     * Fotók letöltése az iroda szerveréről, ellenőrzés, hogy szükséges-e a betöltés
+     * az ingatlan.com rendszerébe
+     *
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      */
-    private function downloadPhotosToQueues(array $photos, $paralellDownload)
+    private function downloadPhotosToQueues(array $photosByOwnId, $paralellDownload)
     {
-        $imageDatas = $this->photoResizeService->getResizedPhotosData($photos, $paralellDownload);
+        $imageDatas = $this->photoResizeService->getResizedPhotosData($photosByOwnId, $paralellDownload);
 
         foreach ($imageDatas as $ownId => $imageData) {
             $photoData = $this->localPhotosByOwnId[$ownId];
@@ -203,9 +220,12 @@ class PhotoSync
     }
 
     /**
-     * @param array $photoData
-     * @param string $imageData
-     * @return int
+     * Feltöltés szükségességének ellenőrzése
+     * MD5 hash és képadatok alapján
+     *
+     * @param array $photoData fotó adatok
+     * @param string $imageData fotó bináris formátumban
+     * @return int feltöltés típusa
      */
     private function needToPutPhoto($photoData, $imageData)
     {
@@ -226,8 +246,10 @@ class PhotoSync
     }
 
     /**
-     * @param array $photo1
-     * @param array $photo2
+     * Fotó adatok különbségének vizsgálata
+     *
+     * @param array $photo1 fotó adatok
+     * @param array $photo2 fotó adatok
      * @return bool
      */
     private function arePhotosDifferent(array $photo1, array $photo2)
@@ -243,6 +265,8 @@ class PhotoSync
     }
 
     /**
+     * Párhuzamos feltöltés hibakezelése
+     *
      * @param MultiTransferException $es
      * @param array $photosByOwnId
      * @return array
@@ -271,7 +295,6 @@ class PhotoSync
                 $errorPhoto['errorMessage'] = $error;
                 $errors[$errorPhoto['ownId']] = $errorPhoto;
             } else {
-                //valami nagyon szornyu tortent, kezdjen vele valamit valaki
                 throw $es;
             }
         }
@@ -280,9 +303,11 @@ class PhotoSync
 
 
     /**
-     * @param string $adOwnId
-     * @param array $photosByOwnId
-     * @return array
+     * Fotók sorrdendezése
+     *
+     * @param string $adOwnId hirdetés saját azonosító
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @return array hirdetés fotói
      */
     private function syncPhotosPutOrder($adOwnId, array $photosByOwnId)
     {

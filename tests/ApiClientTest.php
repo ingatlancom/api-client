@@ -1,10 +1,7 @@
 <?php
 
 /**
- * Created by PhpStorm.
- * User: zooli
- * Date: 2015.11.25.
- * Time: 12:14
+ * ApiClient tesztek
  */
 class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 {
