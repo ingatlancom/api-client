@@ -203,13 +203,17 @@ class ApiClient
     }
 
     /**
-     * @see PhotoSync::syncPhotos()
+     * @param string $adOwnId hirdetés saját azonosító
+     * @param array $photos iroda rendszerében levő fotók adatai
+     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return PhotoSync
      */
-    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null)
+    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
     {
         $service = new PhotoSync($this);
-        return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos);
+        return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos, $paralellDownload);
     }
 
     /**
