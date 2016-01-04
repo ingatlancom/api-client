@@ -13,8 +13,6 @@ use IngatlanCom\ApiClient\Service\Image\ImageImagick;
 use IngatlanCom\ApiClient\Service\Image\ImageInterface;
 
 /**
- * Class PhotoResizeAbstractService
- *
  * Képátméretezés közös részei, pl. file műveletek, file letöltés
  *
  * @package IngatlanCom\ApiClient\Service
@@ -22,12 +20,12 @@ use IngatlanCom\ApiClient\Service\Image\ImageInterface;
 class PhotoResizeService
 {
     /**
-     * Use GD
+     * GD használata képméretezéshez
      */
     const LIB_GD = 1;
 
     /**
-     * Use ImageMagick
+     * ImageMagick használata képméretezéshez
      */
     const LIB_IMAGICK = 2;
 
@@ -236,13 +234,10 @@ class PhotoResizeService
 
         if ($width > $this->maxWidth || $height > $this->maxHeight) {
             $resizedImg = $img->createResizedMaximizedImage($this->maxWidth, $this->maxHeight);
-            $img->destroy();
             $img = $resizedImg;
         }
 
         $imageData = $img->getJpegBytes();
-
-        $img->destroy();
 
         return $imageData;
     }

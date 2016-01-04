@@ -39,7 +39,7 @@ interface ImageInterface
      *
      * @param int $x
      * @param int $y
-     * @return array kulcsok: r, g, bTag value indented incorrectly; expecte
+     * @return array kulcsok: r, g, b
      */
     public function getPixelColor($x, $y);
 
@@ -61,10 +61,6 @@ interface ImageInterface
 
     /**
      * Memória felszabadítás
-     *
-     * Ezt követően már nem szabad az objektumot használni!
-     *
-     * @return mixed
      */
-    public function destroy();
+    public function __destruct();
 }

@@ -18,7 +18,6 @@ $pool = new Stash\Pool($driver);
  * példányosítjuk a klienst
  */
 $apiUrl = 'https://api.ingatlan.com';
-$apiUrl = 'http://api.ingatlan.docker';
 $apiClient = new \IngatlanCom\ApiClient\ApiClient($apiUrl, $pool);
 
 /*

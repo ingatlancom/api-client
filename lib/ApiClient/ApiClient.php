@@ -25,6 +25,11 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
+
+    /**
+     * JWT token
+     * @var string
+     */
     private $token;
 
     /**
@@ -39,7 +44,7 @@ class ApiClient
     private $client;
 
     /**
-     * ApiClient constructor.
+     * ApiClient constructor
      *
      * @param string $apiUrl ingatlan.com API url
      * @param Pool $stashPool Stash példány az authentikációs token tárolására
@@ -127,6 +132,7 @@ class ApiClient
     public function putAd(array $ad)
     {
         $result = $this->sendRequest(RequestInterface::PUT, '/ads/' . $ad['ownId'], json_encode($ad));
+
         return $result['ad'];
     }
 
@@ -152,11 +158,12 @@ class ApiClient
     public function deleteAd($adOwnId)
     {
         $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId);
+
         return $result['ad'];
     }
 
     /**
-     * visszaadja az iroda összes hirdetésének azonosítóit (ingatlan.com-os és saját azonosítót)
+     * Visszaadja az iroda összes hirdetésének azonosítóit (ingatlan.com-os és saját azonosítót)
      *
      * @return array hirdetés ID-k
      */
@@ -168,7 +175,7 @@ class ApiClient
     }
 
     /**
-     * iroda ingatlan.com-on lévő hirdetéseit szinkronba hozza az iroda saját rendszerében lévő hirdetésekkel
+     * Iroda ingatlan.com-on lévő hirdetéseit szinkronba hozza az iroda saját rendszerében lévő hirdetésekkel
      * (kitörli az ingatlan.com-ról azokat a hirdetéseket, amik már nincsenek meg az iroda saját rendszerében)
      *
      * @param array $adIds az iroda saját rendszerében lévő összes hirdetés ID-ja
@@ -213,6 +220,7 @@ class ApiClient
     public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
     {
         $service = new PhotoSync($this);
+
         return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos, $paralellDownload);
     }
 
@@ -288,6 +296,7 @@ class ApiClient
     public function deletePhoto($adOwnId, $photoId)
     {
         $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
+
         return true;
     }
 
@@ -318,6 +327,7 @@ class ApiClient
     public function getPhotos($adOwnId)
     {
         $photos = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId . '/photos');
+
         return $photos['photos'];
     }
 
@@ -331,6 +341,7 @@ class ApiClient
     public function putPhotoOrder($adOwnId, $photoOwnIds)
     {
         $photos = $this->sendRequest(RequestInterface::PUT, '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
+
         return $photos['photos'];
     }
 
@@ -400,6 +411,7 @@ class ApiClient
 
             return $responses;
         }
+
         return array();
     }
 

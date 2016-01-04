@@ -113,7 +113,7 @@ class ImageGD implements ImageInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy()
+    public function __destruct()
     {
         if ($this->img) {
             imagedestroy($this->img);

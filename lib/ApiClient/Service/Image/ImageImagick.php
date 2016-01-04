@@ -94,7 +94,7 @@ class ImageImagick implements ImageInterface
     /**
      * {@inheritdoc}
      */
-    public function destroy()
+    public function __destruct()
     {
         if ($this->img) {
             $this->img->destroy();

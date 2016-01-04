@@ -49,7 +49,6 @@ $testAd1 = array(
     'agentId' => 12111
 );
 
-
 $testAd2 = array (
     'ownId' => 'x96602',
     'listingType' => 1,
