@@ -44,6 +44,8 @@ Ha olyan mezőkben is kap adatot, amely az adott ingatlantípusnál nem szerepel
 
 Ha az utca/város/városrész nevet nem tudja értelmezni, keres az ingatlan.com elhelyezkedései között hasonlót, és ha talál, cseréli.
 
+Városok és városrészek listája megtekinthető a /data könyvtárban található fájlokban.
+
 ### Fotó
 
 Minden fotónak rendelkeznie kell egy (hirdetésenként egyedi) azonosítóval, csak így tölthető be az ingatlan.com rendszerébe.
@@ -54,7 +56,7 @@ Egy fotó tömb kulcsai:
 
  - ownId: csak válaszban, a kép sajátId-ja
  - title: a kép felirata, string(100)
- - labelId: képfelirat azonosítója, a képfeliratok itt találhatóak: TODO
+ - labelId: képfelirat azonosítója, a [képfeliratok itt találhatóak](data/photo_labels.json)
  - md5Hash: csak válaszban, a feltöltött, átméretezett kép md5 hash értéke, segítségével ellenőrizni tudjuk, hogy a kliensnek szükséges-e feltöltenie a képet
  - order: sorrend érték, integer
  - imageData: csak kérésben, a kép fájl tartalma, base64-es kódolásban
