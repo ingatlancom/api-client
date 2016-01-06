@@ -1,5 +1,7 @@
 # ingatlan.com API
 
+![Travis CI Build Status](https://api.travis-ci.org/ingatlancom/api-client.svg)
+
 A rendszer célja, hogy az [ingatlan.com](http://ingatlan.com) előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül is feltölthessék és kezelhessék a hirdetéseiket.
 
 Az API igénybevételének feltétele, hogy a közvetítő rendelkezzen aktív előfizetéssel.
