@@ -24,6 +24,12 @@ Az API végpontjai megtekinthetőek ezek a címen: [https://api.ingatlan.com/v1/
 
 Az API nem rendelkezik külön CREATE és UPDATE funkciókkal; PUT kérés esetén, ha az adott azonosítóval már létezik erőforrás, akkor frissíti, ha nem, létrehozza azt.
 
+## Teszt környezet
+
+Az éles környezettől független teszt rendszer, melyhez a hozzáférést szintén az ügyfélszolgálati kapcsolattartótól kell kérni. Ide csak bizonyos adatokat szinkronizálunk az éles rendszerből, pl. a referensek és a projektek adatait a teszt környezet nem tartalmazza. Az ide feltöltött hirdetéseket a rendszeres adatbázis karbantartások során törlésre kerülhetnek.
+ 
+Teszt URL: https://apitest.ingatlan.com
+
 ## Adattípusok
 
 Az API két adattípussal dolgozik, ezek a hirdetés és a fotó.
