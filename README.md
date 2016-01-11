@@ -26,7 +26,7 @@ Az API nem rendelkezik külön CREATE és UPDATE funkciókkal; PUT kérés eset�
 
 ## Teszt környezet
 
-Az éles környezettől független teszt rendszer, melyhez a hozzáférést szintén az ügyfélszolgálati kapcsolattartótól kell kérni. Ide csak bizonyos adatokat szinkronizálunk az éles rendszerből, pl. a referensek és a projektek adatait a teszt környezet nem tartalmazza. Az ide feltöltött hirdetéseket a rendszeres adatbázis karbantartások során törlésre kerülhetnek.
+Az éles környezettől független teszt rendszer, melyhez a hozzáférést szintén az ügyfélszolgálati kapcsolattartótól kell kérni. Ide csak bizonyos adatokat szinkronizálunk az éles rendszerből, pl. a referensek és a projektek adatait a teszt környezet nem tartalmazza. Az ide feltöltött hirdetések a rendszeres adatbázis karbantartások során törlésre kerülhetnek.
  
 Teszt URL: https://apitest.ingatlan.com
 
