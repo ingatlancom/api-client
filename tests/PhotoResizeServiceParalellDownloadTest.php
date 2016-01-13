@@ -43,6 +43,9 @@ class PhotoResizeServiceParalellDownloadTest extends \Guzzle\Tests\GuzzleTestCas
         $this->assertTrue(is_string($res[4]));
         $this->assertTrue($res[2] instanceof \IngatlanCom\ApiClient\Service\Image\ImageException);
         $this->assertTrue($res[3] instanceof \Guzzle\Http\Exception\ClientErrorResponseException);
-        $this->assertEquals($res[4], $res[1]);
+
+        $sizes1 = getimagesizefromstring($res[1]);
+        $sizes4 = getimagesizefromstring($res[4]);
+        $this->assertEquals($sizes1, $sizes4);
     }
 }
