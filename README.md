@@ -104,7 +104,7 @@ Alapesetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem oko
 Minden fotó feltöltése után a rendszer automatikusan sorrendezi a képeket. 
 Mivel a feltöltés párhuzamosan zajlik, emiatt előfordulhat, hogy a kialakult sorrend nem felel meg a partner rendszerében szereplő sorrenddel.
 Emiatt létrehoztuk a 
-PUT http://api.ingatlan.docker/v1/ads/{adOwnId}/photoOrder 
+PUT http://api.ingatlan.com/v1/ads/{adOwnId}/photoOrder 
 parancsot, aminek egyetlen paramétere egy tömb, melyben a feltöltött képek azonosítói szerepelnek, a kívánt sorrendben.
 
 
