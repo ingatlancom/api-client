@@ -10,7 +10,7 @@ install:
   - composer install
 
 before_script:
-  - printf "\n" | pecl install imagick
+  - printf "\n" | pecl install imagick-3.3.0
   - echo "extension=imagick.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
