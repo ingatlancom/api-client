@@ -71,8 +71,10 @@ foreach ($testAds as $ownId => $ad) {
             echo "Fotók rendben feltöltve:\n";
             var_dump($photoSync->getPhotos());
         }
-    } catch (Guzzle\Http\Exception\ClientErrorResponseException $e) {
+    } catch (\Guzzle\Http\Exception\RequestException $e) {
         print_r($e->getResponse()->json());
+    } catch (\IngatlanCom\ApiClient\Exception\JSendException $e) {
+        print_r($e->getJSendResponse());
     } catch (\Exception $e) {
         echo $ownId . ' ' . $e->getMessage() . "\n";
     }
