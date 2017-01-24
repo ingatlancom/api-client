@@ -3,6 +3,7 @@
     "description": "ingatlan.com rest api client",
     "type": "library",
     "license": "MIT",
+    "version": "1.0.2",
     "require": {
         "php": ">=5.3.0",
         "guzzle/guzzle": "3.9.*",
