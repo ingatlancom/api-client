@@ -102,16 +102,21 @@ class PhotoSync
     /**
      * A teljes szinkronizálási folyamat
      *
-     * @param string $adOwnId hirdetés saját azonosító
-     * @param array $photos iroda rendszerében levő fotók adatai
-     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param string     $adOwnId hirdetés saját azonosító
+     * @param array      $photos iroda rendszerében levő fotók adatai
+     * @param bool       $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
      * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
-     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @param bool       $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return PhotoSync
      * @throws TransferException
      */
-    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
-    {
+    public function syncPhotos(
+        $adOwnId,
+        array $photos,
+        $forceImageDataUpdate = false,
+        array $uploadedPhotos = null,
+        $paralellDownload = false
+    ) {
         if (null === $uploadedPhotos) {
             $uploadedPhotos = $this->apiClient->getPhotos($adOwnId);
         }
@@ -138,7 +143,8 @@ class PhotoSync
         }
 
         //fix order
-        $this->photos = $this->syncPhotosPutOrder($adOwnId, array_merge(array_diff_key($this->photoSortQueue, $this->putPhotoErrors), $this->deletePhotoErrors));
+        $this->photos = $this->syncPhotosPutOrder($adOwnId,
+            array_merge(array_diff_key($this->photoSortQueue, $this->putPhotoErrors), $this->deletePhotoErrors));
 
         return $this;
     }
@@ -146,7 +152,7 @@ class PhotoSync
     /**
      * Tömbből asszociatív tömböt készít valamely mező alapján
      *
-     * @param array $array tömb
+     * @param array  $array tömb
      * @param string $field mező
      * @return array
      */
@@ -190,7 +196,7 @@ class PhotoSync
      * az ingatlan.com rendszerébe
      *
      * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
-     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @param bool  $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      */
     private function downloadPhotosToQueues(array $photosByOwnId, $paralellDownload)
     {
@@ -221,7 +227,7 @@ class PhotoSync
      * Feltöltés szükségességének ellenőrzése
      * MD5 hash és képadatok alapján
      *
-     * @param array $photoData fotó adatok
+     * @param array  $photoData fotó adatok
      * @param string $imageData fotó bináris formátumban
      * @return int feltöltés típusa
      */
@@ -266,7 +272,7 @@ class PhotoSync
      * Párhuzamos feltöltés hibakezelése
      *
      * @param TransferException $es
-     * @param array $photosByOwnId
+     * @param array             $photosByOwnId
      * @return array
      * @throws TransferException
      */
@@ -304,7 +310,7 @@ class PhotoSync
      * Fotók sorrdendezése
      *
      * @param string $adOwnId hirdetés saját azonosító
-     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return array hirdetés fotói
      */
     private function syncPhotosPutOrder($adOwnId, array $photosByOwnId)

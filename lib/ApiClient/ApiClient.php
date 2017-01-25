@@ -46,8 +46,8 @@ class ApiClient
     /**
      * ApiClient constructor
      *
-     * @param string $apiUrl ingatlan.com API url
-     * @param Pool $stashPool Stash példány az authentikációs token tárolására
+     * @param string               $apiUrl ingatlan.com API url
+     * @param Pool                 $stashPool Stash példány az authentikációs token tárolására
      * @param ClientFactoryService $clientFactoryService Guzzle kliens factory
      */
     public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
@@ -210,15 +210,20 @@ class ApiClient
     }
 
     /**
-     * @param string $adOwnId hirdetés saját azonosító
-     * @param array $photos iroda rendszerében levő fotók adatai
-     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param string     $adOwnId hirdetés saját azonosító
+     * @param array      $photos iroda rendszerében levő fotók adatai
+     * @param bool       $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
      * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
-     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @param bool       $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return PhotoSync
      */
-    public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
-    {
+    public function syncPhotos(
+        $adOwnId,
+        array $photos,
+        $forceImageDataUpdate = false,
+        array $uploadedPhotos = null,
+        $paralellDownload = false
+    ) {
         $service = new PhotoSync($this);
 
         return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos, $paralellDownload);
@@ -228,7 +233,7 @@ class ApiClient
      * Fotó feltöltés Request létrehozása
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array $photoData fotó adatok
+     * @param array  $photoData fotó adatok
      * @return RequestInterface
      */
     private function createPhotoPutRequest($adOwnId, array $photoData)
@@ -250,7 +255,7 @@ class ApiClient
      * Fotó feltöltése/módosítása
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array $photoData fotó adatok
+     * @param array  $photoData fotó adatok
      * @return array feltöltött fotó adatok
      * @throws JSendFailException
      */
@@ -272,7 +277,7 @@ class ApiClient
      * Hirdetés fotóinak feltöltése, több szálon
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return Response[]
      * @throws TransferException
      */
@@ -304,7 +309,7 @@ class ApiClient
      * Hirdetés fotóinak törlése, több szálon
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return Response[]
      * @throws TransferException
      */
@@ -335,12 +340,13 @@ class ApiClient
      * Hirdetés képeinek sorrendezése
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array $photoOwnIds fotók saját azonosítója, kívánt sorrendben
+     * @param array  $photoOwnIds fotók saját azonosítója, kívánt sorrendben
      * @return array hirdetés fotói
      */
     public function putPhotoOrder($adOwnId, $photoOwnIds)
     {
-        $photos = $this->sendRequest('PUT', '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
+        $photos = $this->sendRequest('PUT', '/ads/' . $adOwnId . '/photoOrder',
+            json_encode(array('order' => $photoOwnIds)));
 
         return $photos['photos'];
     }
@@ -348,8 +354,8 @@ class ApiClient
     /**
      * Guzzle Request előállítása az API-nak megfelelő headerekkel
      *
-     * @param string $method HTTP method
-     * @param string $endpoint path
+     * @param string      $method HTTP method
+     * @param string      $endpoint path
      * @param string|null $body content
      * @return RequestInterface
      * @throws NotAuthenticatedException
@@ -374,8 +380,8 @@ class ApiClient
     /**
      * Request legyártás, elküldés, válasz feldolgozás
      *
-     * @param string $method HTTP method
-     * @param string $endpoint path
+     * @param string      $method HTTP method
+     * @param string      $endpoint path
      * @param string|null $body content
      * @return array
      * @throws InvalidJSendException if JSend does not conform to spec

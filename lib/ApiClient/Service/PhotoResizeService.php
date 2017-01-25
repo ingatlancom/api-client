@@ -47,7 +47,7 @@ class PhotoResizeService
     /**
      * Konstruktor
      *
-     * @param integer $imageLibrary PhotoResizeService::LIB_GD vagy default:PhotoResizeService::LIB_IMAGICK osztálykonstansok
+     * @param integer              $imageLibrary PhotoResizeService::LIB_GD vagy default:PhotoResizeService::LIB_IMAGICK osztálykonstansok
      * @param ClientFactoryService $clientFactoryService Guzzle kliens factory
      */
     public function __construct($imageLibrary = null, ClientFactoryService $clientFactoryService = null)
@@ -90,7 +90,7 @@ class PhotoResizeService
      * Képek letöltése, átméretezése
      *
      * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
-     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @param bool  $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return array fotó byte-ok|Exception-ok fotó saját azonosító szerint
      */
     public function getResizedPhotosData(array $photosByOwnId, $paralellDownload = false)
@@ -159,7 +159,7 @@ class PhotoResizeService
      * Szürkeárnyalatos-e a kép (pl. alaprajz "fekete-fehér-e"?)
      *
      * @param ImageInterface $img
-     * @param float $tolerancePercentage default 95 (%)
+     * @param float          $tolerancePercentage default 95 (%)
      * @return boolean
      */
     private function isGrayScale(ImageInterface $img, $tolerancePercentage = 95.0)

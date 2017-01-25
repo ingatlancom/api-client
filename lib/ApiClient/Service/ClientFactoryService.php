@@ -15,7 +15,7 @@ class ClientFactoryService
 {
     /**
      * @param string $baseUrl
-     * @param null $config
+     * @param null   $config
      * @return Client
      */
     public function getClient($baseUrl = '', $config = null)

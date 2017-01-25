@@ -14,10 +14,10 @@ abstract class JSendException extends \Exception
     /**
      * JSendException constructor.
      *
-     * @param string $message
-     * @param int $code
+     * @param string          $message
+     * @param int             $code
      * @param \Exception|null $previous
-     * @param JSendResponse $response
+     * @param JSendResponse   $response
      */
     public function __construct($message = "", $code = 0, \Exception $previous = null, JSendResponse $response = null)
     {

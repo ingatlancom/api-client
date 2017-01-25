@@ -9,9 +9,7 @@ require('data.php');
 /*
  * létrehozunk egy Stash Pool-t a JWT token tárolására, hogy ne kelljen minden hívás előtt logint hívnunk az API-n
  */
-$driver = new Stash\Driver\FileSystem();
-$options = array('path' => '/tmp/ingatlancom/');
-$driver->setOptions($options);
+$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
 $pool = new Stash\Pool($driver);
 
 /*
@@ -26,7 +24,7 @@ $apiClient = new \IngatlanCom\ApiClient\ApiClient($apiUrl, $pool);
 try {
     $apiClient->login('username', 'password');
 } catch (\Exception $e) {
-    echo  $e->getMessage() . "\n";
+    echo $e->getMessage() . "\n";
     die();
 }
 
@@ -53,7 +51,7 @@ foreach ($testAds as $ownId => $ad) {
         echo "$ownId API-tól visszakapott értékek különbségei:\n";
         foreach ($diff as $key => $val) {
             if (isset($ad[$key])) {
-                echo str_pad($key, 20, ' ') . "$ad[$key]\t" . var_export($val, true). "\n";
+                echo str_pad($key, 20, ' ') . "$ad[$key]\t" . var_export($val, true) . "\n";
             }
         }
 
@@ -71,8 +69,8 @@ foreach ($testAds as $ownId => $ad) {
             echo "Fotók rendben feltöltve:\n";
             var_dump($photoSync->getPhotos());
         }
-    } catch (\Guzzle\Http\Exception\RequestException $e) {
-        print_r($e->getResponse()->json());
+    } catch (\GuzzleHttp\Exception\RequestException $e) {
+        print_r($e->getResponse()->getBody()->getContents());
     } catch (\IngatlanCom\ApiClient\Exception\JSendException $e) {
         print_r($e->getJSendResponse());
     } catch (\Exception $e) {

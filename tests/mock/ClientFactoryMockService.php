@@ -20,7 +20,7 @@ class ClientFactoryMockService extends ClientFactoryService
 
     /**
      * ClientFactoryMockService constructor.
-     * @param $mockDirectory
+     * @param       $mockDirectory
      * @param array $mocks
      */
     public function __construct($mockDirectory, array $mocks)
@@ -28,7 +28,7 @@ class ClientFactoryMockService extends ClientFactoryService
         $responses = [];
         foreach ($mocks as $mockFile) {
             $body = isset($mockFile['fileName'])
-                ? file_get_contents(__DIR__."/$mockDirectory/".$mockFile['fileName'])
+                ? file_get_contents(__DIR__ . "/$mockDirectory/" . $mockFile['fileName'])
                 : null;
 
             $responses[] = new Response($mockFile['statusCode'], [], $body);
@@ -40,7 +40,7 @@ class ClientFactoryMockService extends ClientFactoryService
 
     /**
      * @param string $baseUrl
-     * @param null $config
+     * @param null   $config
      * @return Client
      */
     public function getClient($baseUrl = '', $config = null)

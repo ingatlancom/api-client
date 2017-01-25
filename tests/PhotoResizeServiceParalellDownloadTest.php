@@ -23,7 +23,7 @@ class PhotoResizeServiceParalellDownloadTest extends \PHPUnit_Framework_TestCase
             1 => array('location' => 'http://1.jpg'),
             2 => array('location' => 'http://toosmall.png'),
             3 => array('location' => 'http://notfound.jpg'),
-            4 => array('location' => __DIR__.'/mock/photos/1.jpg'),
+            4 => array('location' => __DIR__ . '/mock/photos/1.jpg'),
         );
 
         $res = $service->getResizedPhotosData($photos, true);
