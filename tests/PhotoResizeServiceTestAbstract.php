@@ -5,7 +5,7 @@ use IngatlanCom\ApiClient\Service\PhotoResizeService;
 /**
  * Képátméretezés tesztek
  */
-abstract class PhotoResizeServiceTestAbstract extends \Guzzle\Tests\GuzzleTestCase
+abstract class PhotoResizeServiceTestAbstract extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var PhotoResizeService

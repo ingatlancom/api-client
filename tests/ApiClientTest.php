@@ -1,55 +1,50 @@
 <?php
 
+use IngatlanCom\ApiClient\ApiClient;
+
 /**
  * ApiClient tesztek
  */
-class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
+class ApiClientTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var ClientFactoryMockService
+     * @param array $mock
+     * @param int    $statusCode
+     * @return ApiClient
      */
-    private $clientFactoryService;
-
-    /**
-     * @var \IngatlanCom\ApiClient\ApiClient
-     */
-    private $apiClient;
-
-    public function setUp()
-    {
-        $this->setMockBasePath(__DIR__ . '/mock/responses');
-        $this->clientFactoryService = new ClientFactoryMockService();
-        $this->apiClient = new \IngatlanCom\ApiClient\ApiClient('', null, $this->clientFactoryService);
+    public function getClient (array $mock, $statusCode) {
+        return new ApiClient('/', null, new ClientFactoryMockService($mock, $statusCode));
     }
 
     public function testLoginSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginSuccess'], 200);
+        $client->login('lolka', 'bolka');
     }
 
     /**
-     * @expectedException \IngatlanCom\ApiClient\Exception\NotAuthenticatedException
+     * @expectedException IngatlanCom\ApiClient\Exception\NotAuthenticatedException
      */
     public function testLoginFail()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginFail'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginFail'], 401);
+        $client->login('lolka', 'bolka');
     }
 
     public function testPutAdSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
-        $this->apiClient->putAd(array('ownId' => 'i12345'));
+        $client = $this->getClient(['loginSuccess', 'putAdSuccess'], 200);
+        $client->login('lolka', 'bolka');
+        $client->putAd(array('ownId' => 'i12345'));
     }
 
     public function testPutAdFail()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdFail'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginSuccess', 'putAdFail'], 400);
+        $client->login('lolka', 'bolka');
+
         try {
-            $this->apiClient->putAd(array('ownId' => 'i12345'));
+            $client->putAd(['ownId' => 'i12345']);
         } catch (\IngatlanCom\ApiClient\Exception\JSendFailException $e) {
             $this->assertArrayHasKey('listingType', $e->getJSendResponse()->getData());
         }
@@ -57,20 +52,20 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSyncAds()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'getAdIdsSuccess', 'deleteAdSuccess', 'deleteAdSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginSuccess', 'getAdIdsSuccess', 'deleteAdSuccess', 'deleteAdSuccess'], 400);
+        $client->login('lolka', 'bolka');
 
-        $deleted = $this->apiClient->syncAds(array('ad2', 'ad4'));
+        $deleted = $client->syncAds(['ad2', 'ad4']);
 
-        $this->assertEquals(array('ad1', 'ad3'), array_values($deleted));
+        $this->assertEquals(['ad1', 'ad3'], array_values($deleted));
     }
 
     public function testPutPhotosMultiSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginSuccess', 'putPhotoSuccess', 'putPhotoSuccess'], 400);
+        $client->login('lolka', 'bolka');
 
-        $this->apiClient->putPhotosMulti('i12345', array(
+        $client->putPhotosMulti('i12345', array(
             'p1' => array(
                 'ownId' => 'p1'
             ),
@@ -81,14 +76,14 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
     }
 
     /**
-     * @expectedException \Guzzle\Http\Exception\MultiTransferException
+     * @expectedException \GuzzleHttp\Exception\TransferException
      */
     public function testPutPhotosMultiFail()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoFail'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(['loginSuccess', 'putPhotoSuccess', 'putPhotoFail'], 400);
+        $client->login('lolka', 'bolka');
 
-        $this->apiClient->putPhotosMulti(
+        $client->putPhotosMulti(
             'i12345',
             array(
                 'p1' => array(
@@ -103,7 +98,7 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSyncPhotos()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array(
+        $client = $this->getClient([
             'loginSuccess',
             'getPhotosSuccess',
             'deletePhotoSuccess',//1
@@ -111,11 +106,10 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
             'putPhotoSuccess',//5
             //'putPhotoSuccess',//6, nem letezo kep
             'getPhotosSuccess'//putPhotoOrderSuccess ugyanolyan
-        ));
+        ], 400);
+        $client->login('lolka', 'bolka');
 
-        $this->apiClient->login('lolka', 'bolka');
-
-        $result = $this->apiClient->syncPhotos('ad1', array(
+        $result = $client->syncPhotos('ad1', array(
             array(
                 'ownId' => 'p2',
                 'title' => 'photo2',

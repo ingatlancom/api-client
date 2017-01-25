@@ -1,10 +1,11 @@
 <?php
+use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
 /**
  * Parhuzamos kepletoltes teszt
  */
-class PhotoResizeServiceParalellDownloadTest extends \Guzzle\Tests\GuzzleTestCase
+class PhotoResizeServiceParalellDownloadTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var ClientFactoryMockService
@@ -25,9 +26,9 @@ class PhotoResizeServiceParalellDownloadTest extends \Guzzle\Tests\GuzzleTestCas
     public function testGetResizedPhotos()
     {
         $this->setMockResponse($this->clientFactoryService->getClient(), array(
-            new \Guzzle\Http\Message\Response(200, null, file_get_contents(__DIR__ . '/mock/photos/1.jpg')),
-            new \Guzzle\Http\Message\Response(200, null, file_get_contents(__DIR__ . '/mock/photos/toosmall.png')),
-            new \Guzzle\Http\Message\Response(404)
+            new Response(200, null, file_get_contents(__DIR__ . '/mock/photos/1.jpg')),
+            new Response(200, null, file_get_contents(__DIR__ . '/mock/photos/toosmall.png')),
+            new Response(404)
         ));
 
         $photos = array(
@@ -42,7 +43,7 @@ class PhotoResizeServiceParalellDownloadTest extends \Guzzle\Tests\GuzzleTestCas
         $this->assertTrue(is_string($res[1]));
         $this->assertTrue(is_string($res[4]));
         $this->assertTrue($res[2] instanceof \IngatlanCom\ApiClient\Service\Image\ImageException);
-        $this->assertTrue($res[3] instanceof \Guzzle\Http\Exception\ClientErrorResponseException);
+        $this->assertTrue($res[3] instanceof \GuzzleHttp\Exception\ClientException);
 
         $sizes1 = getimagesizefromstring($res[1]);
         $sizes4 = getimagesizefromstring($res[4]);

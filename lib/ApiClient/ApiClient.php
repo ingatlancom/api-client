@@ -1,18 +1,18 @@
 <?php
-
 namespace IngatlanCom\ApiClient;
 
-use Guzzle\Http\Client;
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Http\Exception\MultiTransferException;
-use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Http\Message\Response;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
 use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
 use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Service\ClientFactoryService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
+use Psr\Http\Message\RequestInterface;
 use Stash\Pool;
 
 /**
@@ -94,7 +94,7 @@ class ApiClient
         if ($this->stashPool) {
             $item = $this->stashPool->getItem($username . 'Token');
             //cache for 10 minutes
-            $item->set($token, 600);
+            $item->set($token)->extend(600);
         }
 
         return $token;
@@ -111,7 +111,7 @@ class ApiClient
     private function callLogin($username, $password)
     {
         try {
-            $result = $this->sendRequest(RequestInterface::POST, '/auth/login', json_encode(array(
+            $result = $this->sendRequest('POST', '/auth/login', json_encode(array(
                 'username' => $username,
                 'password' => $password
             )));
@@ -131,7 +131,7 @@ class ApiClient
      */
     public function putAd(array $ad)
     {
-        $result = $this->sendRequest(RequestInterface::PUT, '/ads/' . $ad['ownId'], json_encode($ad));
+        $result = $this->sendRequest('PUT', '/ads/' . $ad['ownId'], json_encode($ad));
 
         return $result['ad'];
     }
@@ -144,7 +144,7 @@ class ApiClient
      */
     public function getAd($adOwnId)
     {
-        $result = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId);
+        $result = $this->sendRequest('GET', '/ads/' . $adOwnId);
 
         return $result['ad'];
     }
@@ -157,7 +157,7 @@ class ApiClient
      */
     public function deleteAd($adOwnId)
     {
-        $result = $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId);
+        $result = $this->sendRequest('DELETE', '/ads/' . $adOwnId);
 
         return $result['ad'];
     }
@@ -169,7 +169,7 @@ class ApiClient
      */
     public function getAdIds()
     {
-        $data = $this->sendRequest(RequestInterface::GET, '/ads/ids');
+        $data = $this->sendRequest('GET', '/ads/ids');
 
         return $data['ids'];
     }
@@ -241,7 +241,7 @@ class ApiClient
             $photoData['imageData'] = base64_encode($photoData['imageData']);
         }
 
-        $request = $this->getRequest(RequestInterface::PUT, '/ads/' . $adOwnId . '/photos/' . $photoOwnId, json_encode($photoData));
+        $request = $this->getRequest('PUT', '/ads/' . $adOwnId . '/photos/' . $photoOwnId, json_encode($photoData));
 
         return $request;
     }
@@ -258,7 +258,7 @@ class ApiClient
     {
         $request = $this->createPhotoPutRequest($adOwnId, $photoData);
         try {
-            $response = $request->send();
+            $response = $this->client->send($request);
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -274,7 +274,7 @@ class ApiClient
      * @param string $adOwnId hirdetés saját azonosítója
      * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return Response[]
-     * @throws MultiTransferException
+     * @throws TransferException
      */
     public function putPhotosMulti($adOwnId, array $photosByOwnId)
     {
@@ -295,7 +295,7 @@ class ApiClient
      */
     public function deletePhoto($adOwnId, $photoId)
     {
-        $this->sendRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoId);
+        $this->sendRequest('DELETE', '/ads/' . $adOwnId . '/photos/' . $photoId);
 
         return true;
     }
@@ -306,13 +306,13 @@ class ApiClient
      * @param string $adOwnId hirdetés saját azonosítója
      * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
      * @return Response[]
-     * @throws MultiTransferException
+     * @throws TransferException
      */
     public function deletePhotosMulti($adOwnId, array $photosByOwnId)
     {
         $requests = array();
         foreach (array_keys($photosByOwnId) as $photoOwnIdToDelete) {
-            $requests[] = $this->getRequest(RequestInterface::DELETE, '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
+            $requests[] = $this->getRequest('DELETE', '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
         }
 
         return $this->sendMultiRequest($requests);
@@ -326,7 +326,7 @@ class ApiClient
      */
     public function getPhotos($adOwnId)
     {
-        $photos = $this->sendRequest(RequestInterface::GET, '/ads/' . $adOwnId . '/photos');
+        $photos = $this->sendRequest('GET', '/ads/' . $adOwnId . '/photos');
 
         return $photos['photos'];
     }
@@ -340,7 +340,7 @@ class ApiClient
      */
     public function putPhotoOrder($adOwnId, $photoOwnIds)
     {
-        $photos = $this->sendRequest(RequestInterface::PUT, '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
+        $photos = $this->sendRequest('PUT', '/ads/' . $adOwnId . '/photoOrder', json_encode(array('order' => $photoOwnIds)));
 
         return $photos['photos'];
     }
@@ -356,21 +356,19 @@ class ApiClient
      */
     private function getRequest($method, $endpoint, $body = null)
     {
-        $request = $this->client->createRequest($method, '/v' . self::APIVERSION . $endpoint, null, $body);
-
-        $request->addHeader('Accept', 'application/json');
+        $headers['Accept'] = 'application/json';
 
         if ($body) {
-            $request->addHeader('Content-type', 'application/json');
+            $headers['Content-type'] = 'application/json';
         }
 
         if ($this->token) {
-            $request->addHeader('Authorization', 'Bearer ' . $this->token);
+            $headers['Authorization'] = 'Bearer ' . $this->token;
         } elseif ('/auth/login' != $endpoint) {
             throw new NotAuthenticatedException('Not authenticated');
         }
 
-        return $request;
+        return new Request($method, '/v' . self::APIVERSION . $endpoint, $headers, $body);
     }
 
     /**
@@ -389,7 +387,7 @@ class ApiClient
         $request = $this->getRequest($method, $endpoint, $body);
 
         try {
-            $response = $request->send();
+            $response = $this->client->send($request);
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
         }
@@ -402,14 +400,16 @@ class ApiClient
      *
      * @param RequestInterface[] $requests
      * @return Response[]
-     * @throws MultiTransferException
+     * @throws TransferException
      */
     private function sendMultiRequest($requests)
     {
         if (count($requests)) {
-            $responses = $this->client->send($requests);
+            foreach ($requests as $request) {
+                $responses = $this->client->sendAsync($request);
 
-            return $responses;
+                return $responses;
+            }
         }
 
         return array();
@@ -426,7 +426,7 @@ class ApiClient
      */
     public function parseResponse(Response $response)
     {
-        $jsendResponse = JSendResponse::decode($response->getBody(true));
+        $jsendResponse = JSendResponse::decode((string)$response->getBody());
 
         if ($jsendResponse->isFail()) {
             throw new JSendFailException('Call failed', 0, null, $jsendResponse);

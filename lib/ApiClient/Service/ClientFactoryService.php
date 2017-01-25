@@ -2,7 +2,7 @@
 
 namespace IngatlanCom\ApiClient\Service;
 
-use Guzzle\Http\Client;
+use GuzzleHttp\Client;
 
 /**
  * Class ClientFactoryService
@@ -20,6 +20,8 @@ class ClientFactoryService
      */
     public function getClient($baseUrl = '', $config = null)
     {
-        return new Client($baseUrl, $config);
+        $config['base_uri'] = $baseUrl;
+
+        return new Client($config);
     }
 }

@@ -1,16 +1,15 @@
 <?php
-
 namespace IngatlanCom\ApiClient\Service;
 
-use Guzzle\Http\Client;
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Http\Exception\MultiTransferException;
-use Guzzle\Http\Message\Request;
-use Guzzle\Http\Message\RequestInterface;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\Image\ImageGD;
 use IngatlanCom\ApiClient\Service\Image\ImageImagick;
 use IngatlanCom\ApiClient\Service\Image\ImageInterface;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Képátméretezés közös részei, pl. file műveletek, file letöltés
@@ -73,8 +72,8 @@ class PhotoResizeService
     public function getResizedPhotoData($path)
     {
         if ('http' == substr(strtolower($path), 0, 4)) {
-            $response = $this->client->get($path)->send();
-            $contents = $response->getBody(true);
+            $response = $this->client->request('GET', $path);
+            $contents = $response->getBody();
         } else {
             $contents = file_get_contents($path);
             if (false === $contents) {
@@ -127,25 +126,30 @@ class PhotoResizeService
     private function getResizedPhotosDataByRequests($requests)
     {
         $results = array();
+        $promises = [];
 
         if (count($requests)) {
             try {
-                $this->client->send($requests);
-            } catch (MultiTransferException $e) {
+                foreach ($requests as $key => $request) {
+                    $promises[$key] = $this->client->sendAsync($request);
+                }
+            } catch (TransferException $e) {
             }
 
-            /** @var Request $request */
-            foreach ($requests as $ownId => $request) {
-                if ($request->getResponse()->isError()) {
-                    $results[$ownId] = BadResponseException::factory($request, $request->getResponse());
-                } else {
-                    try {
-                        $results[$ownId] = $this->resizePhoto($request->getResponse()->getBody(true));
-                    } catch (\Exception $e) {
-                        $results[$ownId] = $e;
+            \GuzzleHttp\Promise\all($promises)->then(function (array $responses) use ($requests) {
+                foreach ($responses as $ownId => $response) {
+                    /** @var Response $response */
+                    if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
+                        $results[$ownId] = BadResponseException::create($requests[$ownId], $response);
+                    } else {
+                        try {
+                            $results[$ownId] = $this->resizePhoto($response->getBody());
+                        } catch (\Exception $e) {
+                            $results[$ownId] = $e;
+                        }
                     }
                 }
-            }
+            })->wait();
         }
 
         return $results;

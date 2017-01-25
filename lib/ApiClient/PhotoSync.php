@@ -1,9 +1,8 @@
 <?php
-
 namespace IngatlanCom\ApiClient;
 
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Http\Exception\MultiTransferException;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\TransferException;
 use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
@@ -109,7 +108,7 @@ class PhotoSync
      * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
      * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return PhotoSync
-     * @throws MultiTransferException
+     * @throws TransferException
      */
     public function syncPhotos($adOwnId, array $photos, $forceImageDataUpdate = false, array $uploadedPhotos = null, $paralellDownload = false)
     {
@@ -124,7 +123,7 @@ class PhotoSync
         $photosToDelete = array_diff_key($this->uploadedPhotosByOwnId, $this->localPhotosByOwnId);
         try {
             $this->apiClient->deletePhotosMulti($adOwnId, $photosToDelete);
-        } catch (MultiTransferException $e) {
+        } catch (TransferException $e) {
             $this->deletePhotoErrors = $this->parseMultiTransferException($e, $photosToDelete);
         }
 
@@ -134,7 +133,7 @@ class PhotoSync
         //put
         try {
             $this->apiClient->putPhotosMulti($adOwnId, $this->photoPutQueue);
-        } catch (MultiTransferException $e) {
+        } catch (TransferException $e) {
             $this->putPhotoErrors = $this->parseMultiTransferException($e, $this->photoPutQueue);
         }
 
@@ -166,7 +165,6 @@ class PhotoSync
      *
      * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
      * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
-     * @return array errors
      */
     private function buildPhotoQueues($forceImageDataUpdate, $paralellDownload)
     {
@@ -267,12 +265,12 @@ class PhotoSync
     /**
      * Párhuzamos feltöltés hibakezelése
      *
-     * @param MultiTransferException $es
+     * @param TransferException $es
      * @param array $photosByOwnId
      * @return array
-     * @throws MultiTransferException
+     * @throws TransferException
      */
-    private function parseMultiTransferException(MultiTransferException $es, array $photosByOwnId)
+    private function parseMultiTransferException(TransferException $es, array $photosByOwnId)
     {
         $errors = array();
         foreach ($es as $e) {
@@ -287,7 +285,7 @@ class PhotoSync
                     $error = "JSON decode error";
                 }
 
-                $urlParts = explode('/photos/', $e->getRequest()->getUrl());
+                $urlParts = explode('/photos/', $e->getRequest()->getUri());
                 $ownId = end($urlParts);
 
                 $errorPhoto = $photosByOwnId[$ownId];
