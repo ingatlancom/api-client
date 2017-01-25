@@ -1,7 +1,7 @@
 {
   "status": "success",
   "data": {
-    "photos": {
+    "photo": {
       "order": 1,
       "ownId": "pX",
       "md5Hash": null,

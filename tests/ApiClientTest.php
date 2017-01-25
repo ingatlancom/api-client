@@ -141,6 +141,7 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
                 ['statusCode' => 200, 'fileName' => 'getPhotosSuccess'],
                 ['statusCode' => 200, 'fileName' => 'deletePhotoSuccess'], //1
                 ['statusCode' => 200, 'fileName' => 'deletePhotoSuccess'], //4
+                ['statusCode' => 200, 'fileName' => 'getPhotosSuccess'],
                 ['statusCode' => 200, 'fileName' => 'putPhotoSuccess'], //5
                 ['statusCode' => 200, 'fileName' => 'getPhotosSuccess'], //putPhotoOrderSuccess ugyanolyan,
             ]
