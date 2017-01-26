@@ -4,6 +4,7 @@ namespace IngatlanCom\ApiClient\Service;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\Image\ImageGD;
@@ -102,7 +103,7 @@ class PhotoResizeService
             $path = $photo['location'];
 
             if ($paralellDownload && 'http' == substr(strtolower($path), 0, 4)) {
-                $requests[$ownId] = $this->client->get($path);
+                $requests[$ownId] = new Request('GET', $path);
             } else {
                 try {
                     $results[$ownId] = $this->getResizedPhotoData($path);

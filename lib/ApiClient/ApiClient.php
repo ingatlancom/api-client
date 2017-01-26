@@ -13,6 +13,7 @@ use IngatlanCom\ApiClient\Service\ClientFactoryService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
 use Psr\Http\Message\RequestInterface;
+use Stash\Item;
 use Stash\Pool;
 
 /**
@@ -92,9 +93,10 @@ class ApiClient
         $token = $this->callLogin($username, $password);
 
         if ($this->stashPool) {
+            /** @var Item $item */
             $item = $this->stashPool->getItem($username . 'Token');
             //cache for 10 minutes
-            $item->set($token)->extend(600);
+            $item->set($token)->setTTL(600);
         }
 
         return $token;
@@ -410,15 +412,15 @@ class ApiClient
      */
     private function sendMultiRequest($requests)
     {
+        $responses = [];
+
         if (count($requests)) {
             foreach ($requests as $request) {
-                $responses = $this->client->sendAsync($request);
-
-                return $responses;
+                $responses[] = $this->client->sendAsync($request);
             }
         }
 
-        return array();
+        return $responses;
     }
 
     /**
