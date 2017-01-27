@@ -1,11 +1,11 @@
-![ingatlan.com](http://ingatlan.com/images/logo.png)
-# Automata Betöltés (API)
+![ingatlan.com](http://ingatlan.com/images/logo.png) 
+# Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client)
 
 A rendszer célja, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket. Az aktiválási igényt az ügyfélszolgálati kapcsolattartóknál kell jelezni. 
 
 **FONTOS:**
 
-* Automata Betöltés (API) használatával történő hibás adatok ( melyek a gépi validáción nem akadnak fent ) megjelenéséért a Szolgáltató nem vállal felelősséget. Azok az ügyfelek, akik Automata Betöltéssel töltenek fel hirdetéseket tudomásul veszik, hogy a referensek által az ingatlan.com admin felületen felvitt módosításaik a következő betöltéssel felülírásra kerülnek. abban az esetben ha azt a saját rendszerükben nem módosították. 
+* Automata Betöltés (API) használatával történő hibás adatok ( melyek a gépi validáción nem akadnak fent ) megjelenéséért a Szolgáltató nem vállal felelősséget. Azok az ügyfelek, akik Automata Betöltéssel töltenek fel hirdetéseket tudomásul veszik, hogy a referensek által az ingatlan.com admin felületen felvitt módosításaik a következő betöltéssel felülírásra kerülnek. Abban az esetben ha azt a saját rendszerükben nem módosították. 
 
 * Amennyiben az ingatlan.com-on szeretne hirdetést feltölteni / törölni / módosítani ezt nem az ingatlan.com admin rendszerben kell megtenni, hanem a saját rendszerben kell frissíteni és jelezni a helyi informatikusnak / rendszergazdának, hogy indítsa el a betöltést. 
 
@@ -15,7 +15,7 @@ A rendszer célja, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéssel 
 
 API URL: [https://api.ingatlan.com](https://api.ingatlan.com/)
 
-Az API szabványos [REST](https://hu.wikipedia.org/wiki/REST) konvenciókat követ, az adatok [JSON](http://json.org/) formátumban közlekednek. A JSON válaszok a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumot követik.
+Az API szabványos [REST](https://hu.wikipedia.org/wiki/REST) konvenciókat követ, az adatok [JSON](http://json.org/) formátumban kerülnek átadásra. A JSON válaszok a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumot követik.
 
 Az azonosításra [JSON Web Token](http://jwt.io/) technológiát alkalmaz. Az API login token érvényessége 1 óra.
 
@@ -51,7 +51,7 @@ Korszerű PHP kódoláshoz kiegészítő információk:
 
 * [http://www.php-fig.org/psr/](http://www.php-fig.org/psr/)
 
-* [http://www.phptherightway.com/](http://www.phptherightway.com/)
+* [http://hu.phptherightway.com/](http://hu.phptherightway.com/)
 
 ## Teszt környezet
 
@@ -69,7 +69,7 @@ Minden hirdetésnek rendelkeznie kell egy (partnerenként egyedi) azonosítóval
 
 A hirdetés paramétereinek listája és magyarázata itt tekinthető meg: [https://api.ingatlan.com/v1/doc/fields](https://api.ingatlan.com/v1/doc/fields)
 
-A hirdetés paramétereinél értelem szerűen a kötelező mezők kötelezően kitöltendőek a felsorolt értékkészletből. Javasoljuk, hogy az opcionális mezők is kitöltve érkezzenek. A hibás vagy hiányos  paraméterekkel érkező hirdetések nem kerülnek feltöltésre.
+A hirdetés paramétereinél értelemszerűen a kötelező mezők kötelezően kitöltendőek a felsorolt értékkészletből. Javasoljuk, hogy az opcionális mezők is kitöltve érkezzenek. A hibás vagy hiányos  paraméterekkel érkező hirdetések nem kerülnek feltöltésre.
 
 Ha valamely paraméter hiányzik vagy hibás, az API visszajelzi a hibát a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumban.
 
@@ -135,17 +135,17 @@ A kliens egy olyan PHP [composer](https://getcomposer.org/) csomag, amely az API
 
 2. Hozzunk létre egy composer.json fájlt az alábbi tartalommal:
 
-```
+```json
 {
     "require": {
-        "ingatlancom/apiclient": "~1.0.0"
+        "ingatlancom/apiclient": "~2.0"
     }
 }
 ```
 
 3. A következő paranccsal indítsuk el a telepítést:
 
-```
+```bash
 php composer.phar install
 ```
 
@@ -169,4 +169,21 @@ A syncPhotos metódus 5. paraméterében azt lehet beállítani, hogy - amennyib
 ## Példakód
 
 Egy példa az [example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban tekinthető meg.
+
+## Migráció 1-es verzióról 2-esre
+
+**FONTOS:** A függőségek frissítésével az api-client szükséges PHP verziója 5.3-ről 5.5-re emelkedett.
+
+Ezenkívül a két alábbi változást le kell követniük a partnereknek:
+
+1. A Stash driver példányosítása a következő módra változott: 
+```php
+$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
+```
+
+2. Küldési hibát elkapni a következő módon lehet:
+```php
+    } catch (\GuzzleHttp\Exception\RequestException $e) {
+        print_r($e->getResponse()->getBody()->getContents());
+```
 
