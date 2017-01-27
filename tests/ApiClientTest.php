@@ -1,55 +1,68 @@
 <?php
 
+use IngatlanCom\ApiClient\ApiClient;
+
 /**
  * ApiClient tesztek
  */
-class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
+class ApiClientTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var ClientFactoryMockService
+     * @param array $mocks
+     * @return ApiClient
      */
-    private $clientFactoryService;
-
-    /**
-     * @var \IngatlanCom\ApiClient\ApiClient
-     */
-    private $apiClient;
-
-    public function setUp()
+    public function getClient(array $mocks)
     {
-        $this->setMockBasePath(__DIR__ . '/mock/responses');
-        $this->clientFactoryService = new ClientFactoryMockService();
-        $this->apiClient = new \IngatlanCom\ApiClient\ApiClient('', null, $this->clientFactoryService);
+        return new ApiClient('/', null, new ClientFactoryMockService('responses', $mocks));
     }
 
     public function testLoginSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
     }
 
     /**
-     * @expectedException \IngatlanCom\ApiClient\Exception\NotAuthenticatedException
+     * @expectedException IngatlanCom\ApiClient\Exception\NotAuthenticatedException
      */
     public function testLoginFail()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginFail'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(
+            [
+                ['statusCode' => 401, 'fileName' => 'loginFail'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
     }
 
     public function testPutAdSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
-        $this->apiClient->putAd(array('ownId' => 'i12345'));
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 200, 'fileName' => 'putAdSuccess'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
+        $client->putAd(array('ownId' => 'i12345'));
     }
 
     public function testPutAdFail()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putAdFail'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 400, 'fileName' => 'putAdFail'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
+
         try {
-            $this->apiClient->putAd(array('ownId' => 'i12345'));
+            $client->putAd(['ownId' => 'i12345']);
         } catch (\IngatlanCom\ApiClient\Exception\JSendFailException $e) {
             $this->assertArrayHasKey('listingType', $e->getJSendResponse()->getData());
         }
@@ -57,92 +70,114 @@ class ApiClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSyncAds()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'getAdIdsSuccess', 'deleteAdSuccess', 'deleteAdSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 200, 'fileName' => 'getAdIdsSuccess'],
+                ['statusCode' => 200, 'fileName' => 'deleteAdSuccess'],
+                ['statusCode' => 200, 'fileName' => 'deleteAdSuccess'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
 
-        $deleted = $this->apiClient->syncAds(array('ad2', 'ad4'));
+        $deleted = $client->syncAds(['ad2', 'ad4']);
 
-        $this->assertEquals(array('ad1', 'ad3'), array_values($deleted));
+        $this->assertEquals(['ad1', 'ad3'], array_values($deleted));
     }
 
     public function testPutPhotosMultiSuccess()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoSuccess'));
-        $this->apiClient->login('lolka', 'bolka');
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 200, 'fileName' => 'putPhotoSuccess'],
+                ['statusCode' => 200, 'fileName' => 'putPhotoSuccess'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
 
-        $this->apiClient->putPhotosMulti('i12345', array(
-            'p1' => array(
-                'ownId' => 'p1'
-            ),
-            'p2' => array(
-                'ownId' => 'p2'
-            )
-        ));
-    }
-
-    /**
-     * @expectedException \Guzzle\Http\Exception\MultiTransferException
-     */
-    public function testPutPhotosMultiFail()
-    {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array('loginSuccess', 'putPhotoSuccess', 'putPhotoFail'));
-        $this->apiClient->login('lolka', 'bolka');
-
-        $this->apiClient->putPhotosMulti(
+        $client->putPhotosMulti(
             'i12345',
             array(
                 'p1' => array(
-                    'ownId' => 'p1'
+                    'ownId' => 'p1',
                 ),
                 'p2' => array(
-                    'ownId' => 'p2'
-                )
+                    'ownId' => 'p2',
+                ),
+            )
+        );
+    }
+
+    public function testPutPhotosMultiFail()
+    {
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 200, 'fileName' => 'putPhotoSuccess'],
+                ['statusCode' => 400, 'fileName' => 'putPhotoFail'],
+            ]
+        );
+        $client->login('lolka', 'bolka');
+
+        $client->putPhotosMulti(
+            'i12345',
+            array(
+                'p1' => array(
+                    'ownId' => 'p1',
+                ),
+                'p2' => array(
+                    'ownId' => 'p2',
+                ),
             )
         );
     }
 
     public function testSyncPhotos()
     {
-        $this->setMockResponse($this->clientFactoryService->getClient(null), array(
-            'loginSuccess',
-            'getPhotosSuccess',
-            'deletePhotoSuccess',//1
-            'deletePhotoSuccess',//4
-            'putPhotoSuccess',//5
-            //'putPhotoSuccess',//6, nem letezo kep
-            'getPhotosSuccess'//putPhotoOrderSuccess ugyanolyan
-        ));
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'loginSuccess'],
+                ['statusCode' => 200, 'fileName' => 'getPhotosSuccess'],
+                ['statusCode' => 200, 'fileName' => 'deletePhotoSuccess'], //1
+                ['statusCode' => 200, 'fileName' => 'deletePhotoSuccess'], //4
+                ['statusCode' => 200, 'fileName' => 'putPhotoSuccess'], //5
+                ['statusCode' => 200, 'fileName' => 'getPhotosSuccess'], //putPhotoOrderSuccess ugyanolyan,
+            ]
+        );
+        $client->login('lolka', 'bolka');
 
-        $this->apiClient->login('lolka', 'bolka');
-
-        $result = $this->apiClient->syncPhotos('ad1', array(
+        $result = $client->syncPhotos(
+            'ad1',
             array(
-                'ownId' => 'p2',
-                'title' => 'photo2',
-                'labelId' => null,
-                'order' => 1
-            ),
-            array(
-                'ownId' => 'p3',
-                'title' => 'photo3',
-                'labelId' => null,
-                'order' => 2
-            ),
-            array(
-                'ownId' => 'p5',
-                'title' => 'photo5',
-                'labelId' => null,
-                'location' => __DIR__ . '/mock/photos/1.jpg',
-                'order' => 3
-            ),
-            array(
-                'ownId' => 'p6',
-                'title' => 'photo6',
-                'labelId' => null,
-                'location' => __DIR__ . '/mock/photos/2.jpg',
-                'order' => 4
+                array(
+                    'ownId'   => 'p2',
+                    'title'   => 'photo2',
+                    'labelId' => null,
+                    'order'   => 1,
+                ),
+                array(
+                    'ownId'   => 'p3',
+                    'title'   => 'photo3',
+                    'labelId' => null,
+                    'order'   => 2,
+                ),
+                array(
+                    'ownId'    => 'p5',
+                    'title'    => 'photo5',
+                    'labelId'  => null,
+                    'location' => __DIR__ . '/mock/photos/1.jpg',
+                    'order'    => 3,
+                ),
+                array(
+                    'ownId'    => 'p6',
+                    'title'    => 'photo6',
+                    'labelId'  => null,
+                    'location' => __DIR__ . '/mock/photos/2.jpg',
+                    'order'    => 4,
+                ),
             )
-        ));
+        );
 
         //photos/2.jpg nincs
         $this->assertCount(0, $result->getDeletePhotoErrors());

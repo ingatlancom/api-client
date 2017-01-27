@@ -1,5 +1,3 @@
-HTTP/1.1 401 Not Authorized
-
 {
   "status": "fail",
   "data": {
