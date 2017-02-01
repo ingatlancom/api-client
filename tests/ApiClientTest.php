@@ -109,6 +109,9 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * @expectedException \GuzzleHttp\Exception\ClientException
+     */
     public function testPutPhotosMultiFail()
     {
         $client = $this->getClient(

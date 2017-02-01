@@ -416,7 +416,7 @@ class ApiClient
 
         if (count($requests)) {
             foreach ($requests as $request) {
-                $responses[] = $this->client->sendAsync($request);
+                $responses[] = $this->client->send($request);
             }
         }
 
