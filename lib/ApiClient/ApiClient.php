@@ -3,7 +3,8 @@ namespace IngatlanCom\ApiClient;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Promise;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
@@ -26,6 +27,7 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
+    const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
 
     /**
      * JWT token
@@ -280,14 +282,13 @@ class ApiClient
      *
      * @param string $adOwnId hirdetés saját azonosítója
      * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
-     * @return Response[]
-     * @throws TransferException
+     * @return array
      */
     public function putPhotosMulti($adOwnId, array $photosByOwnId)
     {
         $requests = array();
-        foreach ($photosByOwnId as $photo) {
-            $requests[] = $this->createPhotoPutRequest($adOwnId, $photo);
+        foreach ($photosByOwnId as $photoOwnId => $photo) {
+            $requests[$photoOwnId] = $this->createPhotoPutRequest($adOwnId, $photo);
         }
 
         return $this->sendMultiRequest($requests);
@@ -312,14 +313,13 @@ class ApiClient
      *
      * @param string $adOwnId hirdetés saját azonosítója
      * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
-     * @return Response[]
-     * @throws TransferException
+     * @return array
      */
     public function deletePhotosMulti($adOwnId, array $photosByOwnId)
     {
         $requests = array();
         foreach (array_keys($photosByOwnId) as $photoOwnIdToDelete) {
-            $requests[] = $this->getRequest('DELETE', '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
+            $requests[$photoOwnIdToDelete] = $this->getRequest('DELETE', '/ads/' . $adOwnId . '/photos/' . $photoOwnIdToDelete);
         }
 
         return $this->sendMultiRequest($requests);
@@ -407,20 +407,30 @@ class ApiClient
      * Request-ek párhuzamos elküldése
      *
      * @param RequestInterface[] $requests
-     * @return Response[]
-     * @throws TransferException
+     * @return array
      */
     private function sendMultiRequest($requests)
     {
-        $responses = [];
+        $results = [];
 
         if (count($requests)) {
-            foreach ($requests as $request) {
-                $responses[] = $this->client->send($request);
+            $promises = [];
+            foreach ($requests as $photoOwnId => $request) {
+                $promises[$photoOwnId] = $this->client->sendAsync($request);
             }
+            Promise\each_limit(
+                $promises,
+                self::NUMBER_OF_MAX_PARALLEL_REQUESTS,
+                function ($value, $idx) use (&$results) {
+                    $results[$idx] = ['state' => PromiseInterface::FULFILLED, 'value' => $value];
+                },
+                function ($reason, $idx) use (&$results) {
+                    $results[$idx] = ['state' => PromiseInterface::REJECTED, 'value' => $reason];
+                }
+            )->wait();
         }
 
-        return $responses;
+        return $results;
     }
 
     /**

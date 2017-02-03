@@ -1,10 +1,8 @@
 <?php
 namespace IngatlanCom\ApiClient;
 
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\TransferException;
-use IngatlanCom\ApiClient\Exception\ServerErrorException;
-use IngatlanCom\ApiClient\Exception\JSendFailException;
+use GuzzleHttp\Promise\PromiseInterface;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
 /**
@@ -126,21 +124,15 @@ class PhotoSync
 
         //delete
         $photosToDelete = array_diff_key($this->uploadedPhotosByOwnId, $this->localPhotosByOwnId);
-        try {
-            $this->apiClient->deletePhotosMulti($adOwnId, $photosToDelete);
-        } catch (TransferException $e) {
-            $this->deletePhotoErrors = $this->parseMultiTransferException($e, $photosToDelete);
-        }
+        $deleteResults = $this->apiClient->deletePhotosMulti($adOwnId, $photosToDelete);
+        $this->deletePhotoErrors = $this->parseMultiTransferErrors($deleteResults, $photosToDelete);
 
         //fetch image data, diff with uploaded
         $this->buildPhotoQueues($forceImageDataUpdate, $paralellDownload);
 
         //put
-        try {
-            $this->apiClient->putPhotosMulti($adOwnId, $this->photoPutQueue);
-        } catch (TransferException $e) {
-            $this->putPhotoErrors = $this->parseMultiTransferException($e, $this->photoPutQueue);
-        }
+        $putResults = $this->apiClient->putPhotosMulti($adOwnId, $this->photoPutQueue);
+        $this->putPhotoErrors = $this->parseMultiTransferErrors($putResults, $this->photoPutQueue);
 
         //fix order
         $this->photos = $this->syncPhotosPutOrder($adOwnId,
@@ -269,42 +261,27 @@ class PhotoSync
     }
 
     /**
-     * Párhuzamos feltöltés hibakezelése
+     * Megnézi, hogy a párhuzamos kérések között volt-e, ami sikertelen
      *
-     * @param TransferException $es
-     * @param array             $photosByOwnId
+     * @param array $results A requestek eredményei
+     * @param array $photosByOwnId
      * @return array
-     * @throws TransferException
      */
-    private function parseMultiTransferException(TransferException $es, array $photosByOwnId)
+    private function parseMultiTransferErrors(array $results, array $photosByOwnId)
     {
-        $errors = array();
-        foreach ($es as $e) {
-            if ($e instanceof BadResponseException) {
-                try {
-                    $error = $this->apiClient->parseResponse($e->getResponse());
-                } catch (ServerErrorException $jse) {
-                    $error = 'Server error: ' . $jse->getJSendResponse()->getErrorMessage();
-                } catch (JSendFailException $jse) {
-                    $error = $jse->getJSendResponse()->getData();
-                } catch (\UnexpectedValueException $uve) {
-                    $error = "JSON decode error";
-                }
-
-                $urlParts = explode('/photos/', $e->getRequest()->getUri());
-                $ownId = end($urlParts);
-
-                $errorPhoto = $photosByOwnId[$ownId];
-                $errorPhoto['exception'] = $e;
-                $errorPhoto['errorMessage'] = $error;
+        $errors = [];
+        foreach ($results as $index => $result) {
+            if ($result['state'] == PromiseInterface::REJECTED && $result['value'] instanceof \Exception) {
+                $errorPhoto = $photosByOwnId[$index];
+                /** @var \Exception $exception */
+                $exception = $result['value'];
+                $errorPhoto['exception'] = $exception;
+                $errorPhoto['errorMessage'] = $exception->getMessage();
                 $errors[$errorPhoto['ownId']] = $errorPhoto;
-            } else {
-                throw $es;
             }
         }
         return $errors;
     }
-
 
     /**
      * Fotók sorrdendezése
