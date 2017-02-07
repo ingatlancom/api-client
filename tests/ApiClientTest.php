@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Promise\PromiseInterface;
 use IngatlanCom\ApiClient\ApiClient;
 
 /**
@@ -96,7 +97,7 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         );
         $client->login('lolka', 'bolka');
 
-        $client->putPhotosMulti(
+        $result = $client->putPhotosMulti(
             'i12345',
             array(
                 'p1' => array(
@@ -107,11 +108,11 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
                 ),
             )
         );
+
+        $this->assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
+        $this->assertEquals(PromiseInterface::FULFILLED, $result['p2']['state']);
     }
 
-    /**
-     * @expectedException \GuzzleHttp\Exception\ClientException
-     */
     public function testPutPhotosMultiFail()
     {
         $client = $this->getClient(
@@ -123,7 +124,7 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         );
         $client->login('lolka', 'bolka');
 
-        $client->putPhotosMulti(
+        $result = $client->putPhotosMulti(
             'i12345',
             array(
                 'p1' => array(
@@ -134,6 +135,9 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
                 ),
             )
         );
+
+        $this->assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
+        $this->assertEquals(PromiseInterface::REJECTED, $result['p2']['state']);
     }
 
     public function testSyncPhotos()
