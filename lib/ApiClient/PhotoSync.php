@@ -1,8 +1,11 @@
 <?php
 namespace IngatlanCom\ApiClient;
 
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Promise\PromiseInterface;
+use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
 
 /**
@@ -272,11 +275,26 @@ class PhotoSync
         $errors = [];
         foreach ($results as $index => $result) {
             if ($result['state'] == PromiseInterface::REJECTED && $result['value'] instanceof \Exception) {
-                $errorPhoto = $photosByOwnId[$index];
                 /** @var \Exception $exception */
                 $exception = $result['value'];
+
+                $errorPhoto = $photosByOwnId[$index];
                 $errorPhoto['exception'] = $exception;
-                $errorPhoto['errorMessage'] = $exception->getMessage();
+                if ($exception instanceof RequestException) {
+                    try {
+                        $error = $this->apiClient->parseResponse($exception->getResponse());
+                    } catch (ServerErrorException $jse) {
+                        $error = 'Server error: ' . $jse->getJSendResponse()->getErrorMessage();
+                    } catch (JSendFailException $jse) {
+                        $error = $jse->getJSendResponse()->getData();
+                        $error = isset($error['message']) ? $error['message'] : $error;
+                    } catch (\UnexpectedValueException $uve) {
+                        $error = "JSON decode error";
+                    }
+                    $errorPhoto['errorMessage'] = $error;
+                } else {
+                    $errorPhoto['errorMessage'] = $exception->getMessage();
+                }
                 $errors[$errorPhoto['ownId']] = $errorPhoto;
             }
         }
