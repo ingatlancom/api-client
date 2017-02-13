@@ -87,7 +87,9 @@ Az alábbi mezők nem módosíthatóak:
 
 Ha olyan mezőkben is kap adatot, amely az adott ingatlantípusnál nem szerepelhetnek, az esetek többségében kijavítja ezeket, 0/NULL értékekre.
 
-A hirdetések egyik legfontosabb jellemzője az elhelyezkedés, ezért a feltöltött adatokat az API minden esetben leellenőrzi. A pontatlanul megadott címeket a rendszer megpróbálja valós elhelyezkedési adatokra javítani, de az esetleges hibás megjelenésért a Szolgáltató nem vállal felelősséget.Városok és városrészek listája megtekinthető a [/data](https://github.com/ingatlancom/api-client/blob/master/data) könyvtárban található fájlokban.
+A hirdetések egyik legfontosabb jellemzője az elhelyezkedés, ezért a feltöltött adatokat az API minden esetben leellenőrzi. A pontatlanul megadott címeket a rendszer megpróbálja valós elhelyezkedési adatokra javítani, de az esetleges hibás megjelenésért a Szolgáltató nem vállal felelősséget.
+
+A városok és városrészek listája megtekinthető [az alábbi tömörített állományban](https://api.ingatlan.com/doc_references/doc_references.zip).
 
 ### Megfeleltető funkció
 
