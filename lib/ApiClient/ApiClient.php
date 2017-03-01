@@ -444,7 +444,16 @@ class ApiClient
      */
     public function parseResponse(Response $response)
     {
-        $jsendResponse = JSendResponse::decode((string)$response->getBody());
+        try {
+            $jsendResponse = JSendResponse::decode((string)$response->getBody());
+        } catch (\UnexpectedValueException $exception) {
+            preg_match("/<title>\\d+ .*<\\/title>/", $response->getBody(), $message);
+            $jsendResponse = JSendResponse::error(
+                strip_tags($message[0]),
+                $response->getStatusCode()
+            );
+        }
+
 
         if ($jsendResponse->isFail()) {
             throw new JSendFailException('Call failed', 0, null, $jsendResponse);
