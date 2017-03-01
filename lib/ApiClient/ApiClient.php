@@ -447,10 +447,10 @@ class ApiClient
         try {
             $jsendResponse = JSendResponse::decode((string)$response->getBody());
         } catch (\UnexpectedValueException $exception) {
-            preg_match("/<title>\\d+ .*<\\/title>/", $response->getBody(), $message);
+            $match = preg_match("/<title>\\d+ .*<\\/title>/", (string)$response->getBody(), $message);
             $jsendResponse = JSendResponse::error(
-                strip_tags($message[0]),
-                $response->getStatusCode()
+                $match ? strip_tags($message[0]) : "server connection error",
+                $match ? $response->getStatusCode() : 503
             );
         }
 
