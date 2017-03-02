@@ -444,7 +444,16 @@ class ApiClient
      */
     public function parseResponse(Response $response)
     {
-        $jsendResponse = JSendResponse::decode((string)$response->getBody());
+        try {
+            $jsendResponse = JSendResponse::decode((string)$response->getBody());
+        } catch (\UnexpectedValueException $exception) {
+            $match = preg_match("/<title>\\d+ .*<\\/title>/", (string)$response->getBody(), $message);
+            $jsendResponse = JSendResponse::error(
+                $match ? strip_tags($message[0]) : "server connection error",
+                $match ? $response->getStatusCode() : 503
+            );
+        }
+
 
         if ($jsendResponse->isFail()) {
             throw new JSendFailException('Call failed', 0, null, $jsendResponse);
