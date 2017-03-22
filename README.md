@@ -105,7 +105,7 @@ A fotó tömb kulcsai:
 
 * title: a kép felirata, string(100)
 
-* labelId: képfelirat azonosítója, a [képfeliratok itt találhatóak](https://github.com/ingatlancom/api-client/blob/master/data/photo_labels.json)
+* labelId: képfelirat azonosítója, a [képfeliratok itt találhatóak](https://api.ingatlan.com/doc_references/photo_labels.json)
 
 * md5Hash: csak válaszban, a feltöltött, átméretezett kép md5 hash értéke, segítségével ellenőrizni tudjuk, hogy a kliensnek a későbbi feltöltésekkor szükséges-e újra küldenie a képet
 
