@@ -8,7 +8,7 @@ php:
   - 'hhvm'
 
 install:
-  - composer install
+  - composer install --no-scripts
 
 before_script:
   - ./.before_script.sh
