@@ -15,9 +15,24 @@
         "phpmd/phpmd": "2.*",
         "squizlabs/php_codesniffer": "2.*"
     },
+    "scripts": {
+        "ingatlancom-scripts": [
+            "IngatlanCom\\ApiClient\\Composer\\ScriptHandler::checkRequirements"
+        ],
+        "pre-install-cmd": [
+            "@ingatlancom-scripts"
+        ],
+        "pre-update-cmd": [
+            "@ingatlancom-scripts"
+        ]
+    },
     "autoload": {
         "psr-4": {
             "IngatlanCom\\ApiClient\\": "lib/ApiClient/"
         }
+    },
+    "suggest": {
+        "ext-imagick": "Képműveletek elvégzéséhez szükséges képfeldolgozó bővítmény",
+        "ext-gd": "Képműveletek elvégzéséhez szükséges képfeldolgozó bővítmény"
     }
 }
