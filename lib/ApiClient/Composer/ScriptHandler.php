@@ -12,7 +12,7 @@ class ScriptHandler
      */
     public static function checkRequirements()
     {
-        if (!extension_loaded('imagick') || !extension_loaded('gd')) {
+        if (!extension_loaded('imagick') && !extension_loaded('gd')) {
             throw new MissingRequirementsException(
                 'Az Api kliens használatához kérjük telepítse az "imagick", vagy a "gd" PHP bővítmények valamelyikét!'
             );
