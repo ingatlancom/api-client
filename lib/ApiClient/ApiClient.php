@@ -52,13 +52,18 @@ class ApiClient
     private $password;
 
     /**
+     * @var array $tokenCache Auth token cache (ha nincs Pool megadva)
+     */
+    private $tokenCache = [];
+
+    /**
      * ApiClient constructor
      *
      * @param string               $apiUrl ingatlan.com API url
      * @param Pool                 $stashPool Stash példány az authentikációs token tárolására
      * @param ClientFactoryService $clientFactoryService Guzzle kliens factory
      */
-    public function __construct($apiUrl, Pool $stashPool, ClientFactoryService $clientFactoryService = null)
+    public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
     {
         $this->stashPool = $stashPool;
         $clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
@@ -94,18 +99,29 @@ class ApiClient
             if (!$item->isMiss()) {
                 return $item->get();
             }
+        } else {
+            if (isset($this->tokenCache[$this->getTokenCacheKey()]) &&
+                $this->tokenCache[$this->getTokenCacheKey()]['expiration'] > time()
+            ) {
+                return $this->tokenCache[$this->getTokenCacheKey()]['token'];
+            }
         }
 
         $token = $this->callLogin();
 
-        if ($this->stashPool) {
-            // calculate token lifetime
-            $ttl = $this->getTokenTTL($token);
+        // calculate token lifetime
+        $ttl = $this->getTokenTTL($token);
 
+        if ($this->stashPool) {
             /** @var Item $item */
             $item = $this->stashPool->getItem($this->getTokenCacheKey());
             // cache token
             $item->set($token)->setTTL($ttl)->save();
+        } else {
+            $this->tokenCache[$this->getTokenCacheKey()] = [
+                'token' => $token,
+                'expiration' => time() + $ttl
+            ];
         }
 
         return $token;
