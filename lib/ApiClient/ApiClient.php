@@ -8,12 +8,12 @@ use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Exception\JWTTokenException;
 use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
 use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Service\ClientFactoryService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
-use Lcobucci\JWT\Parser;
 use Psr\Http\Message\RequestInterface;
 use Stash\Item;
 use Stash\Pool;
@@ -71,6 +71,7 @@ class ApiClient
      * @param string $username
      * @param string $password
      * @throws NotAuthenticatedException
+     * @throws JWTTokenException
      */
     public function login($username, $password)
     {
@@ -86,6 +87,7 @@ class ApiClient
      * @param string $password jelszó
      * @return string JWT token
      * @throws NotAuthenticatedException
+     * @throws JWTTokenException
      */
     private function getToken($username, $password)
     {
@@ -99,10 +101,8 @@ class ApiClient
         $token = $this->callLogin($username, $password);
 
         if ($this->stashPool) {
-            $tokenParser = new Parser();
-            $tokenData = $tokenParser->parse($token);
             // calculate token lifetime
-            $ttl = $tokenData->getClaim('exp') - $tokenData->getClaim('iat') - 60;
+            $ttl = $this->getTokenTTL($token);
 
             /** @var Item $item */
             $item = $this->stashPool->getItem($username . 'Token');
@@ -370,6 +370,7 @@ class ApiClient
      * @param string|null $body content
      * @return RequestInterface
      * @throws NotAuthenticatedException
+     * @throws JWTTokenException
      */
     private function getRequest($method, $endpoint, $body = null)
     {
@@ -471,5 +472,23 @@ class ApiClient
         }
 
         return $jsendResponse->getData();
+    }
+
+    /**
+     * Kiszedi az auth token érvényességét
+     *
+     * @param string $token
+     * @return mixed
+     * @throws JWTTokenException
+     */
+    private function getTokenTTL($token)
+    {
+        $data = base64_decode(explode('.', $token)[1]);
+        $tokenData = json_decode($data);
+        if ($tokenData) {
+            return $tokenData->exp - $tokenData->iat - 60;
+        } else {
+            throw new JWTTokenException("Invalid token!");
+        }
     }
 }
