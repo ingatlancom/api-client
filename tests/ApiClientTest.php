@@ -14,7 +14,8 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
      */
     public function getClient(array $mocks)
     {
-        return new ApiClient('/', null, new ClientFactoryMockService('responses', $mocks));
+        $pool = new Stash\Pool(new FileSystemMock());
+        return new ApiClient('/', $pool, new ClientFactoryMockService('responses', $mocks));
     }
 
     public function testLoginSuccess()

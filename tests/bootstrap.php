@@ -1,6 +1,7 @@
 <?php
 require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/tests/mock/ClientFactoryMockService.php';
+require dirname(__DIR__) . '/tests/mock/FileSystemMock.php';
 require dirname(__DIR__) . '/tests/PhotoResizeServiceTestAbstract.php';
 
 if (!function_exists('getimagesizefromstring')) {
