@@ -77,35 +77,33 @@ class ApiClient
     {
         $this->username = $username;
         $this->password = $password;
-        $this->getToken($username, $password);
+        $this->getToken();
     }
 
     /**
      * Authentikációs token lekérése a cache-ből, vagy a szervertől.
      *
-     * @param string $username felhasználónév
-     * @param string $password jelszó
      * @return string JWT token
      * @throws NotAuthenticatedException
      * @throws JWTTokenException
      */
-    private function getToken($username, $password)
+    private function getToken()
     {
         if ($this->stashPool) {
-            $item = $this->stashPool->getItem($username . 'Token');
+            $item = $this->stashPool->getItem($this->getTokenCacheKey());
             if (!$item->isMiss()) {
                 return $item->get();
             }
         }
 
-        $token = $this->callLogin($username, $password);
+        $token = $this->callLogin();
 
         if ($this->stashPool) {
             // calculate token lifetime
             $ttl = $this->getTokenTTL($token);
 
             /** @var Item $item */
-            $item = $this->stashPool->getItem($username . 'Token');
+            $item = $this->stashPool->getItem($this->getTokenCacheKey());
             // cache token
             $item->set($token)->setTTL($ttl)->save();
         }
@@ -116,17 +114,15 @@ class ApiClient
     /**
      * API bejelentkezés meghívása
      *
-     * @param string $username felhasználónév
-     * @param string $password jelszó
      * @return string JWT token
      * @throws NotAuthenticatedException
      */
-    private function callLogin($username, $password)
+    private function callLogin()
     {
         try {
             $result = $this->sendRequest('POST', '/auth/login', json_encode(array(
-                'username' => $username,
-                'password' => $password
+                'username' => $this->username,
+                'password' => $this->password
             )));
         } catch (JSendFailException $e) {
             throw new NotAuthenticatedException('Login failed', 0, $e);
@@ -381,7 +377,7 @@ class ApiClient
         }
 
         if ('/auth/login' != $endpoint) {
-            $headers['Authorization'] = 'Bearer ' . $this->getToken($this->username, $this->password);
+            $headers['Authorization'] = 'Bearer ' . $this->getToken();
         }
 
         return new Request($method, '/v' . self::APIVERSION . $endpoint, $headers, $body);
@@ -490,5 +486,15 @@ class ApiClient
         } else {
             throw new JWTTokenException("Invalid token!");
         }
+    }
+
+    /**
+     * Visszaadja a token kulcsát a poolban
+     *
+     * @return string
+     */
+    private function getTokenCacheKey()
+    {
+         return $this->username . 'Token';
     }
 }
