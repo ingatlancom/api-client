@@ -15,6 +15,7 @@ use IngatlanCom\ApiClient\Service\ClientFactoryService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
 use Psr\Http\Message\RequestInterface;
+use Stash\Driver\Ephemeral;
 use Stash\Item;
 use Stash\Pool;
 
@@ -52,11 +53,6 @@ class ApiClient
     private $password;
 
     /**
-     * @var array $tokenCache Auth token cache (ha nincs Pool megadva)
-     */
-    private $tokenCache = [];
-
-    /**
      * ApiClient constructor
      *
      * @param string               $apiUrl ingatlan.com API url
@@ -65,7 +61,11 @@ class ApiClient
      */
     public function __construct($apiUrl, Pool $stashPool = null, ClientFactoryService $clientFactoryService = null)
     {
-        $this->stashPool = $stashPool;
+        if ($stashPool) {
+            $this->stashPool = $stashPool;
+        } else {
+            $this->stashPool = new Pool(new Ephemeral());
+        }
         $clientFactoryService = null != $clientFactoryService ? $clientFactoryService : new ClientFactoryService();
         $this->client = $clientFactoryService->getClient($apiUrl);
     }
@@ -94,17 +94,9 @@ class ApiClient
      */
     private function getToken()
     {
-        if ($this->stashPool) {
-            $item = $this->stashPool->getItem($this->getTokenCacheKey());
-            if (!$item->isMiss()) {
-                return $item->get();
-            }
-        } else {
-            if (isset($this->tokenCache[$this->getTokenCacheKey()]) &&
-                $this->tokenCache[$this->getTokenCacheKey()]['expiration'] > time()
-            ) {
-                return $this->tokenCache[$this->getTokenCacheKey()]['token'];
-            }
+        $item = $this->stashPool->getItem($this->getTokenCacheKey());
+        if (!$item->isMiss()) {
+            return $item->get();
         }
 
         $token = $this->callLogin();
@@ -112,17 +104,10 @@ class ApiClient
         // calculate token lifetime
         $ttl = $this->getTokenTTL($token);
 
-        if ($this->stashPool) {
-            /** @var Item $item */
-            $item = $this->stashPool->getItem($this->getTokenCacheKey());
-            // cache token
-            $item->set($token)->setTTL($ttl)->save();
-        } else {
-            $this->tokenCache[$this->getTokenCacheKey()] = [
-                'token' => $token,
-                'expiration' => time() + $ttl
-            ];
-        }
+        /** @var Item $item */
+        $item = $this->stashPool->getItem($this->getTokenCacheKey());
+        // cache token
+        $item->set($token)->setTTL($ttl)->save();
 
         return $token;
     }
