@@ -6,9 +6,6 @@ use IngatlanCom\ApiClient\Service\PhotoResizeService;
  */
 class PhotoResizeServiceParalellDownloadTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @expectedException \GuzzleHttp\Exception\ClientException
-     */
     public function testGetResizedPhotos()
     {
         $service = $this->getPhotoResizeService(
