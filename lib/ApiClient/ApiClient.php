@@ -29,6 +29,7 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
+    const CLIENT_VERSION = "2.1.0";
     const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
 
     /**
@@ -123,7 +124,8 @@ class ApiClient
         try {
             $result = $this->sendRequest('POST', '/auth/login', json_encode(array(
                 'username' => $this->username,
-                'password' => $this->password
+                'password' => $this->password,
+                'version'  => self::CLIENT_VERSION
             )));
         } catch (JSendFailException $e) {
             throw new NotAuthenticatedException('Login failed', 0, $e);
