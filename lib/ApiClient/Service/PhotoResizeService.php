@@ -2,10 +2,9 @@
 namespace IngatlanCom\ApiClient\Service;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
 use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\Image\ImageGD;
 use IngatlanCom\ApiClient\Service\Image\ImageImagick;
@@ -126,7 +125,7 @@ class PhotoResizeService
      */
     private function getResizedPhotosDataByRequests($requests)
     {
-        $results = array();
+        $results = [];
         $promises = [];
 
         if (count($requests)) {
@@ -137,20 +136,27 @@ class PhotoResizeService
             } catch (TransferException $e) {
             }
 
-            \GuzzleHttp\Promise\all($promises)->then(function (array $responses) use ($requests) {
-                foreach ($responses as $ownId => $response) {
-                    /** @var Response $response */
-                    if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
-                        $results[$ownId] = BadResponseException::create($requests[$ownId], $response);
-                    } else {
-                        try {
-                            $results[$ownId] = $this->resizePhoto($response->getBody());
-                        } catch (\Exception $e) {
-                            $results[$ownId] = $e;
-                        }
-                    }
+            \GuzzleHttp\Promise\each(
+                $promises,
+                function ($value, $idx) use (&$results) {
+                    $results[$idx] = ['state' => PromiseInterface::FULFILLED, 'value' => $value];
+                },
+                function ($reason, $idx) use (&$results) {
+                    $results[$idx] = ['state' => PromiseInterface::REJECTED, 'value' => $reason];
                 }
-            })->wait();
+            )->wait();
+        }
+
+        foreach ($results as $ownId => $response) {
+            if ($response['state'] == PromiseInterface::REJECTED) {
+                $results[$ownId] = $response['value'];
+            } else {
+                try {
+                    $results[$ownId] = $this->resizePhoto($response['value']->getBody());
+                } catch (\Exception $e) {
+                    $results[$ownId] = $e;
+                }
+            }
         }
 
         return $results;

@@ -5,6 +5,14 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [2.2.0] - 2017-04-13
+
+### Bekerült
+- verzió küldése headerben
+
+### Javítva
+- képek letöltésének javítása
+
 ## [2.1.0] - 2017-04-06
 
 ### Bekerült
