@@ -3,6 +3,7 @@
 namespace IngatlanCom\ApiClient\Service;
 
 use GuzzleHttp\Client;
+use IngatlanCom\ApiClient\ApiClient;
 
 /**
  * Class ClientFactoryService
@@ -21,6 +22,7 @@ class ClientFactoryService
     public function getClient($baseUrl = '', $config = null)
     {
         $config['base_uri'] = $baseUrl;
+        $config['headers'] = ['X-Icom-Client-Version' => ApiClient::CLIENT_VERSION];
 
         return new Client($config);
     }

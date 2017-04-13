@@ -124,8 +124,7 @@ class ApiClient
         try {
             $result = $this->sendRequest('POST', '/auth/login', json_encode(array(
                 'username' => $this->username,
-                'password' => $this->password,
-                'version'  => self::CLIENT_VERSION
+                'password' => $this->password
             )));
         } catch (JSendFailException $e) {
             throw new NotAuthenticatedException('Login failed', 0, $e);
