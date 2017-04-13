@@ -148,7 +148,7 @@ class PhotoResizeService
         }
 
         foreach ($results as $ownId => $response) {
-            if ($response['state'] == 'rejected') {
+            if ($response['state'] == PromiseInterface::REJECTED) {
                 $results[$ownId] = $response['value'];
             } else {
                 try {
