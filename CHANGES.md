@@ -5,6 +5,11 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [2.2.1] - 2017-04-26
+
+### Javítva
+- 800x600-nál nagyobb képek GD-vel történő hibás átméretezésének javítása
+
 ## [2.2.0] - 2017-04-13
 
 ### Bekerült
