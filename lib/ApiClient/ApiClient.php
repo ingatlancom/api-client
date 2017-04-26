@@ -29,7 +29,7 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
-    const CLIENT_VERSION = "2.2.0";
+    const CLIENT_VERSION = "2.2.1";
     const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
 
     /**
