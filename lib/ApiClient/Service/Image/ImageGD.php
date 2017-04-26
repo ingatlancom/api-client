@@ -75,7 +75,7 @@ class ImageGD implements ImageInterface
     /**
      * {@inheritdoc}
      */
-    public function createResizedMaximizedImage($maxHeight, $maxWidth)
+    public function createResizedMaximizedImage($maxWidth, $maxHeight)
     {
         $width = $this->getWidth();
         $height = $this->getHeight();
