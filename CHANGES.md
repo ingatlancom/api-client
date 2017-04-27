@@ -5,6 +5,12 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [2.2.2] - 2017-04-27
+
+### Javítva
+- Szerveridők csúszásából fakadó "lejárt vagy hibás token" hibaüzenet javítása
+- null Response kezelése PhotoSync osztályban
+
 ## [2.2.1] - 2017-04-26
 
 ### Javítva

@@ -282,7 +282,11 @@ class PhotoSync
                 $errorPhoto['exception'] = $exception;
                 if ($exception instanceof RequestException) {
                     try {
-                        $error = $this->apiClient->parseResponse($exception->getResponse());
+                        if ($exception->getResponse()) {
+                            $error = $this->apiClient->parseResponse($exception->getResponse());
+                        } else {
+                            $error = $exception->getMessage();
+                        }
                     } catch (ServerErrorException $jse) {
                         $error = 'Server error: ' . $jse->getJSendResponse()->getErrorMessage();
                     } catch (JSendFailException $jse) {
