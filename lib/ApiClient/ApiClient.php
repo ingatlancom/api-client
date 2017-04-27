@@ -484,7 +484,7 @@ class ApiClient
         $data = base64_decode(explode('.', $token)[1]);
         $tokenData = json_decode($data);
         if ($tokenData) {
-            return $tokenData->exp - $tokenData->iat - 60;
+            return $tokenData->exp - $tokenData->iat - $tokenData->clock_skew - 60;
         } else {
             throw new JWTTokenException("Invalid token!");
         }
