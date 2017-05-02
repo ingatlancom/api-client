@@ -162,7 +162,7 @@ A fotó tömb kulcsai:
 
 * imageData: csak kérésben, a kép fájl tartalma, base64-es kódolásban
 
-Amennyiben az ügyfél által megadott kép nem elérhető hibaüzenetet adunk vissza.
+Amennyiben az ügyfél által megadott kép nem elérhető hibaüzenetet adunk vissza. Az ingatlan.com rendszerébe 20 képet lehet feltölteni, ez vonatkozik az Automata Betöltésre is. 
 
 ## Referensek kezelése
 
