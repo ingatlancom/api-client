@@ -58,8 +58,8 @@ foreach ($testAds as $ownId => $ad) {
         /*
          * hirdetés képeinek frissítése, hibák listázása
          */
-        $apiClient->syncPhotos($ownId, $testPhotos[$ownId], false, $icomAd['photos'], true);
-        $errors = $apiClient->getPhotoSyncErrors();
+        $photoSync = $apiClient->syncPhotos($ownId, $testPhotos[$ownId], false, $icomAd['photos'], true);
+        $errors = $photoSync->getErrors();
         if (count($errors) > 0) {
             echo "Hibák történtek a képfeltöltés során:\n";
             foreach ($errors as $photoOwnId => $error) {
@@ -67,7 +67,7 @@ foreach ($testAds as $ownId => $ad) {
             }
         } elseif (count($testPhotos[$ownId]) > 0) {
             echo "Fotók rendben feltöltve:\n";
-            var_dump($apiClient->getSyncedPhotos());
+            var_dump($photoSync->getPhotos());
         }
     } catch (\GuzzleHttp\Exception\RequestException $e) {
         print_r($e->getResponse()->getBody()->getContents());
