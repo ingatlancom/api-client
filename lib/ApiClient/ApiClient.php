@@ -3,6 +3,7 @@ namespace IngatlanCom\ApiClient;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
@@ -12,6 +13,7 @@ use IngatlanCom\ApiClient\Exception\JWTTokenException;
 use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
 use IngatlanCom\ApiClient\Exception\ServerErrorException;
 use IngatlanCom\ApiClient\Service\ClientFactoryService;
+use IngatlanCom\ApiClient\Service\PhotoResizeService;
 use JSend\InvalidJSendException;
 use JSend\JSendResponse;
 use Psr\Http\Message\RequestInterface;
@@ -31,6 +33,9 @@ class ApiClient
     const APIVERSION = 1;
     const CLIENT_VERSION = "2.2.2";
     const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
+    const PUT_WITH_IMAGE_DATA = 2;
+    const PUT_WITHOUT_IMAGE_DATA = 1;
+    const PUT_NOTNEEDED = 0;
 
     /**
      * Cache a JWT tokennek
@@ -52,6 +57,29 @@ class ApiClient
      * @var string $password Jelszó
      */
     private $password;
+
+    /**
+     * rendezendő kepek
+     * @var array
+     */
+    private $photoSortQueue = array();
+
+    /**
+     * feltoltendő képek
+     * @var array
+     */
+    private $photoPutQueue = array();
+
+    /**
+     * @var array $errors
+     */
+    private $errors = [];
+
+    /**
+     * Képszinkron eredménye, feltöltött képek
+     * @var array
+     */
+    private $photos;
 
     /**
      * ApiClient constructor
@@ -114,6 +142,34 @@ class ApiClient
     }
 
     /**
+     * Visszaadja a token kulcsát a poolban
+     *
+     * @return string
+     */
+    private function getTokenCacheKey()
+    {
+        return $this->username . 'Token';
+    }
+
+    /**
+     * Kiszedi az auth token érvényességét
+     *
+     * @param string $token
+     * @return mixed
+     * @throws JWTTokenException
+     */
+    private function getTokenTTL($token)
+    {
+        $data = base64_decode(explode('.', $token)[1]);
+        $tokenData = json_decode($data);
+        if ($tokenData) {
+            return $tokenData->exp - $tokenData->iat - $tokenData->clock_skew - 60;
+        } else {
+            throw new JWTTokenException("Invalid token!");
+        }
+    }
+
+    /**
      * API bejelentkezés meghívása
      *
      * @return string JWT token
@@ -134,6 +190,19 @@ class ApiClient
     }
 
     /**
+     * Hirdetés lekérése
+     *
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @return array hirdetés adatai
+     */
+    public function getAd($adOwnId)
+    {
+        $result = $this->sendRequest('GET', '/ads/' . $adOwnId);
+
+        return $result['ad'];
+    }
+
+    /**
      * Hirdetés feladása/módosítása
      *
      * @param array $ad hirdetésadatok
@@ -143,19 +212,6 @@ class ApiClient
     public function putAd(array $ad)
     {
         $result = $this->sendRequest('PUT', '/ads/' . $ad['ownId'], json_encode($ad));
-
-        return $result['ad'];
-    }
-
-    /**
-     * Hirdetés lekérése
-     *
-     * @param string $adOwnId hirdetés saját azonosítója
-     * @return array hirdetés adatai
-     */
-    public function getAd($adOwnId)
-    {
-        $result = $this->sendRequest('GET', '/ads/' . $adOwnId);
 
         return $result['ad'];
     }
@@ -186,58 +242,16 @@ class ApiClient
     }
 
     /**
-     * Iroda ingatlan.com-on lévő hirdetéseit szinkronba hozza az iroda saját rendszerében lévő hirdetésekkel
-     * (kitörli az ingatlan.com-ról azokat a hirdetéseket, amik már nincsenek meg az iroda saját rendszerében)
+     * Hirdetés fotóinak lekérése
      *
-     * @param array $adIds az iroda saját rendszerében lévő összes hirdetés ID-ja
-     * @return array a törölt hirdetések ID-i
-     * @throws \Exception
+     * @param string $adOwnId hirdetés saját azonosítója
+     * @return array fotók adatai
      */
-    public function syncAds(array $adIds)
+    public function getPhotos($adOwnId)
     {
-        try {
-            $ids = $this->getAdIds();
-        } catch (\Exception $e) {
-            throw new \Exception('A hirdetés ID-k lekérése nem sikerült', 0, $e);
-        }
+        $photos = $this->sendRequest('GET', '/ads/' . $adOwnId . '/photos');
 
-        $ownIds = array_reduce(
-            $ids,
-            function ($carry, $item) {
-                if ($item['ownId'] && 0 == $item['statusId']) {
-                    $carry[] = $item['ownId'];
-                }
-                return $carry;
-            },
-            array()
-        );
-
-        $idsToDelete = array_diff($ownIds, $adIds);
-        foreach ($idsToDelete as $id) {
-            $this->deleteAd($id);
-        }
-
-        return $idsToDelete;
-    }
-
-    /**
-     * @param string     $adOwnId hirdetés saját azonosító
-     * @param array      $photos iroda rendszerében levő fotók adatai
-     * @param bool       $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
-     * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
-     * @param bool       $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
-     * @return PhotoSync
-     */
-    public function syncPhotos(
-        $adOwnId,
-        array $photos,
-        $forceImageDataUpdate = false,
-        array $uploadedPhotos = null,
-        $paralellDownload = false
-    ) {
-        $service = new PhotoSync($this);
-
-        return $service->syncPhotos($adOwnId, $photos, $forceImageDataUpdate, $uploadedPhotos, $paralellDownload);
+        return $photos['photos'];
     }
 
     /**
@@ -333,16 +347,38 @@ class ApiClient
     }
 
     /**
-     * Hirdetés fotóinak lekérése
+     * Iroda ingatlan.com-on lévő hirdetéseit szinkronba hozza az iroda saját rendszerében lévő hirdetésekkel
+     * (kitörli az ingatlan.com-ról azokat a hirdetéseket, amik már nincsenek meg az iroda saját rendszerében)
      *
-     * @param string $adOwnId hirdetés saját azonosítója
-     * @return array fotók adatai
+     * @param array $adIds az iroda saját rendszerében lévő összes hirdetés ID-ja
+     * @return array a törölt hirdetések ID-i
+     * @throws \Exception
      */
-    public function getPhotos($adOwnId)
+    public function syncAds(array $adIds)
     {
-        $photos = $this->sendRequest('GET', '/ads/' . $adOwnId . '/photos');
+        try {
+            $ids = $this->getAdIds();
+        } catch (\Exception $e) {
+            throw new \Exception('A hirdetés ID-k lekérése nem sikerült', 0, $e);
+        }
 
-        return $photos['photos'];
+        $ownIds = array_reduce(
+            $ids,
+            function ($carry, $item) {
+                if ($item['ownId'] && 0 == $item['statusId']) {
+                    $carry[] = $item['ownId'];
+                }
+                return $carry;
+            },
+            array()
+        );
+
+        $idsToDelete = array_diff($ownIds, $adIds);
+        foreach ($idsToDelete as $id) {
+            $this->deleteAd($id);
+        }
+
+        return $idsToDelete;
     }
 
     /**
@@ -460,7 +496,6 @@ class ApiClient
             );
         }
 
-
         if ($jsendResponse->isFail()) {
             throw new JSendFailException('Call failed', 0, null, $jsendResponse);
         }
@@ -473,30 +508,272 @@ class ApiClient
     }
 
     /**
-     * Kiszedi az auth token érvényességét
+     * A teljes szinkronizálási folyamat
      *
-     * @param string $token
-     * @return mixed
-     * @throws JWTTokenException
+     * @param string     $adOwnId hirdetés saját azonosító
+     * @param array      $photos iroda rendszerében levő fotók adatai
+     * @param bool       $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param array|null $uploadedPhotos ingatlan.com rendszerében levő fotók adatai
+     * @param bool       $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @return ApiClient
+     * @throws TransferException
      */
-    private function getTokenTTL($token)
+    public function syncPhotos(
+        $adOwnId,
+        array $photos,
+        $forceImageDataUpdate = false,
+        array $uploadedPhotos = null,
+        $paralellDownload = false
+    ) {
+        if (null === $uploadedPhotos) {
+            $uploadedPhotos = $this->getPhotos($adOwnId);
+        }
+
+        $localPhotosByOwnId = $this->mapArrayByField($photos, 'ownId');
+        $uploadedPhotosByOwnId = $this->mapArrayByField($uploadedPhotos, 'ownId');
+
+        //delete
+        $photosToDelete = array_diff_key($uploadedPhotosByOwnId, $localPhotosByOwnId);
+        $deleteResults = $this->deletePhotosMulti($adOwnId, $photosToDelete);
+        $this->errors['photoDelete'] = $this->parseMultiTransferErrors($deleteResults, $photosToDelete);
+
+        //fetch image data, diff with uploaded
+        $this->buildPhotoQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, $forceImageDataUpdate, $paralellDownload);
+
+        //put
+        $putResults = $this->putPhotosMulti($adOwnId, $this->photoPutQueue);
+        $this->errors['photoPut'] = $this->parseMultiTransferErrors($putResults, $this->photoPutQueue);
+
+        //fix order
+        $this->photos = $this->syncPhotosPutOrder($adOwnId,
+            array_merge(array_diff_key($this->photoSortQueue, $this->errors['photoPut']), $this->errors['photoDelete']));
+
+        return $this;
+    }
+
+    /**
+     * Tömbből asszociatív tömböt készít valamely mező alapján
+     *
+     * @param array  $array tömb
+     * @param string $field mező
+     * @return array
+     */
+    private function mapArrayByField(array $array, $field)
     {
-        $data = base64_decode(explode('.', $token)[1]);
-        $tokenData = json_decode($data);
-        if ($tokenData) {
-            return $tokenData->exp - $tokenData->iat - $tokenData->clock_skew - 60;
-        } else {
-            throw new JWTTokenException("Invalid token!");
+        $result = array();
+        foreach ($array as $el) {
+            //TODO duplicate key-re exception
+            $result[$el[$field]] = $el;
+        }
+        return $result;
+    }
+
+    /**
+     * fotó feltöltési és rendezési sorok létrehozása
+     *
+     * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     */
+    private function buildPhotoQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, $forceImageDataUpdate, $paralellDownload)
+    {
+        $downloadQueue = array();
+
+        foreach ($localPhotosByOwnId as $ownId => $photoData) {
+            //ha feltoltendo, mert nincs feltolve sajatid alapjan, vagy update szukseges
+            if (!array_key_exists($ownId, $uploadedPhotosByOwnId) || $forceImageDataUpdate) {
+                $downloadQueue[$ownId] = $photoData;
+            } else {
+                if ($this->arePhotosDifferent($uploadedPhotosByOwnId[$ownId], $photoData)) {
+                    $this->photoPutQueue[$ownId] = $photoData;
+                }
+                $this->photoSortQueue[$ownId] = $photoData;
+            }
+        }
+
+        $this->downloadPhotosToQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, $downloadQueue, $paralellDownload);
+    }
+
+    /**
+     * Fotók letöltése az iroda szerveréről, ellenőrzés, hogy szükséges-e a betöltés
+     * az ingatlan.com rendszerébe
+     *
+     * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @param bool  $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     */
+    private function downloadPhotosToQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, array $photosByOwnId, $paralellDownload)
+    {
+        $photoResizeService = new PhotoResizeService();
+        $imageDatas = $photoResizeService->getResizedPhotosData($photosByOwnId, $paralellDownload);
+
+        foreach ($imageDatas as $ownId => $imageData) {
+            $photoData = $localPhotosByOwnId[$ownId];
+            if ($imageData instanceof \Exception) {
+                $photoData['exception'] = $imageData;
+                $photoData['errorMessage'] = $imageData->getMessage();
+                $this->errors['photoFetch'][$ownId] = $photoData;
+            } else {
+                //md5 check, full upload
+                $needToPutPhoto = $this->needToPutPhoto($uploadedPhotosByOwnId, $photoData, $imageData);
+                if ($needToPutPhoto != self::PUT_NOTNEEDED) {
+                    if (self::PUT_WITH_IMAGE_DATA == $needToPutPhoto) {
+                        $photoData['imageData'] = $imageData;
+                    }
+                    $this->photoPutQueue[$ownId] = $photoData;
+                }
+
+                $this->photoSortQueue[$ownId] = $photoData;
+            }
         }
     }
 
     /**
-     * Visszaadja a token kulcsát a poolban
+     * Feltöltés szükségességének ellenőrzése
+     * MD5 hash és képadatok alapján
      *
-     * @return string
+     * @param array  $photoData fotó adatok
+     * @param string $imageData fotó bináris formátumban
+     * @return int feltöltés típusa
      */
-    private function getTokenCacheKey()
+    private function needToPutPhoto($uploadedPhotosByOwnId, $photoData, $imageData)
     {
-         return $this->username . 'Token';
+        $ownId = $photoData['ownId'];
+
+        //ha nincs feltoltve, vagy md5 nem egyezik
+        if (!array_key_exists($ownId, $uploadedPhotosByOwnId)
+            || md5($imageData) != $uploadedPhotosByOwnId[$ownId]['md5Hash']
+        ) {
+            return self::PUT_WITH_IMAGE_DATA;
+        } elseif (array_key_exists($ownId, $uploadedPhotosByOwnId)) {
+            if ($this->arePhotosDifferent($uploadedPhotosByOwnId[$ownId], $photoData)) {
+                return self::PUT_WITHOUT_IMAGE_DATA;
+            }
+        }
+
+        return self::PUT_NOTNEEDED;
+    }
+
+    /**
+     * Fotó adatok különbségének vizsgálata
+     *
+     * @param array $photo1 fotó adatok
+     * @param array $photo2 fotó adatok
+     * @return bool
+     */
+    private function arePhotosDifferent(array $photo1, array $photo2)
+    {
+        if (
+            $photo1['title'] != $photo2['title'] ||
+            $photo1['labelId'] != $photo2['labelId']
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Megnézi, hogy a párhuzamos kérések között volt-e, ami sikertelen
+     *
+     * @param array $results A requestek eredményei
+     * @param array $photosByOwnId
+     * @return array
+     */
+    private function parseMultiTransferErrors(array $results, array $photosByOwnId)
+    {
+        $errors = [];
+        foreach ($results as $index => $result) {
+            if ($result['state'] == PromiseInterface::REJECTED && $result['value'] instanceof \Exception) {
+                /** @var \Exception $exception */
+                $exception = $result['value'];
+
+                $errorPhoto = $photosByOwnId[$index];
+                $errorPhoto['exception'] = $exception;
+                if ($exception instanceof RequestException) {
+                    try {
+                        if ($exception->getResponse()) {
+                            $error = $this->parseResponse($exception->getResponse());
+                        } else {
+                            $error = $exception->getMessage();
+                        }
+                    } catch (ServerErrorException $jse) {
+                        $error = 'Server error: ' . $jse->getJSendResponse()->getErrorMessage();
+                    } catch (JSendFailException $jse) {
+                        $error = $jse->getJSendResponse()->getData();
+                        $error = isset($error['message']) ? $error['message'] : $error;
+                    } catch (\UnexpectedValueException $uve) {
+                        $error = "JSON decode error";
+                    }
+                    $errorPhoto['errorMessage'] = $error;
+                } else {
+                    $errorPhoto['errorMessage'] = $exception->getMessage();
+                }
+                $errors[$errorPhoto['ownId']] = $errorPhoto;
+            }
+        }
+        return $errors;
+    }
+
+    /**
+     * Fotók sorrdendezése
+     *
+     * @param string $adOwnId hirdetés saját azonosító
+     * @param array  $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
+     * @return array hirdetés fotói
+     */
+    private function syncPhotosPutOrder($adOwnId, array $photosByOwnId)
+    {
+        usort($photosByOwnId, function ($a, $b) {
+            if ($a['order'] == $b['order']) {
+                return 0;
+            }
+
+            return $a['order'] < $b['order'] ? -1 : 1;
+        });
+
+        $order = array_map(function ($photo) {
+            return $photo['ownId'];
+        }, $photosByOwnId);
+
+        return $this->putPhotoOrder($adOwnId, $order);
+    }
+
+    /**
+     * @return array
+     */
+    public function getFetchPhotoErrors()
+    {
+        return $this->errors['photoFetch'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeletePhotoErrors()
+    {
+        return $this->errors['photoDelete'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getPutPhotoErrors()
+    {
+        return $this->errors['photoPut'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getPhotoSyncErrors()
+    {
+        return array_merge($this->errors['photoDelete'], $this->errors['photoFetch'], $this->errors['photoPut']);
+    }
+
+    /**
+     * @return array
+     */
+    public function getSyncedPhotos()
+    {
+        return $this->photos;
     }
 }
