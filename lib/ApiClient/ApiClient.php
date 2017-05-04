@@ -563,8 +563,11 @@ class ApiClient
     /**
      * fotó feltöltési és rendezési sorok létrehozása
      *
+     * @param array $localPhotosByOwnId A feltölteni kívánt fotók tömbje
+     * @param array $uploadedPhotosByOwnId Az ingatlan.com szerverére feltöltött fotók tömbje
      * @param bool $forceImageDataUpdate akkor is töltsük le a fotót az iroda rendszeréből, ha már fel van töltve adott azonosítóval
      * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @return array
      */
     private function buildPhotoQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, $forceImageDataUpdate, $paralellDownload)
     {
@@ -589,8 +592,11 @@ class ApiClient
      * Fotók letöltése az iroda szerveréről, ellenőrzés, hogy szükséges-e a betöltés
      * az ingatlan.com rendszerébe
      *
+     * @param array $localPhotosByOwnId A feltölteni kívánt fotók tömbje
+     * @param array $uploadedPhotosByOwnId Az ingatlan.com szerverére feltöltött fotók tömbje
      * @param array $photosByOwnId hirdetés képeinek adatai, saját azonosító szerint indexelve
-     * @param bool  $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @param bool $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
+     * @return array
      */
     private function downloadPhotosToQueues($localPhotosByOwnId, $uploadedPhotosByOwnId, array $photosByOwnId, $paralellDownload)
     {
