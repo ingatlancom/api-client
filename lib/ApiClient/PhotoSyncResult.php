@@ -1,6 +1,9 @@
 <?php
 namespace IngatlanCom\ApiClient;
 
+/**
+ * A fotók szinkronizálásának eredménye (ApiClient::syncPhotos() hívásakor kapjuk vissza)
+ */
 class PhotoSyncResult
 {
     /**
@@ -33,11 +36,30 @@ class PhotoSyncResult
     }
 
     /**
+     * @param string $arrayName
+     * @return array
+     */
+    private function getErrorsFromArray($arrayName)
+    {
+        return isset($this->errors[$arrayName]) ?  $this->errors[$arrayName] : [];
+    }
+
+    /**
      * @return array
      */
     public function getFetchPhotoErrors()
     {
-        return isset($this->errors['photoFetch']) ?  $this->errors['photoFetch'] : [];
+        return $this->getErrorsFromArray('photoFetch');
+    }
+
+    /**
+     * A fotók letöltésének hibaüzenetei own id indexű tömbben
+     *
+     * @return array
+     */
+    public function getFetchPhotoErrorMessages()
+    {
+        return array_column($this->getFetchPhotoErrors(), 'errorMessage', 'ownId');
     }
 
     /**
@@ -45,7 +67,17 @@ class PhotoSyncResult
      */
     public function getDeletePhotoErrors()
     {
-        return isset($this->errors['photoDelete']) ? $this->errors['photoDelete'] : [];
+        return $this->getErrorsFromArray('photoDelete');
+    }
+
+    /**
+     * A fotók törlésének hibaüzenetei own id indexű tömbben
+     *
+     * @return array
+     */
+    public function getDeletePhotoErrorMessages()
+    {
+        return array_column($this->getDeletePhotoErrors(), 'errorMessage', 'ownId');
     }
 
     /**
@@ -53,7 +85,17 @@ class PhotoSyncResult
      */
     public function getPutPhotoErrors()
     {
-        return isset($this->errors['photoPut']) ? $this->errors['photoPut'] : [];
+        return $this->getErrorsFromArray('photoPut');
+    }
+
+    /**
+     * A fotók feltöltésének hibaüzenetei own id indexű tömbben
+     *
+     * @return array
+     */
+    public function getPutPhotoErrorMessages()
+    {
+        return array_column($this->getPutPhotoErrors(), 'errorMessage', 'ownId');
     }
 
     /**
@@ -66,5 +108,15 @@ class PhotoSyncResult
             $this->getFetchPhotoErrors(),
             $this->getPutPhotoErrors()
         );
+    }
+
+    /**
+     * A szinkronizálás közben történt hibák own id indexű tömbben
+     *
+     * @return array
+     */
+    public function getErrorMessages()
+    {
+        return $this->getFetchPhotoErrorMessages() + $this->getDeletePhotoErrorMessages() + $this->getPutPhotoErrorMessages();
     }
 }
