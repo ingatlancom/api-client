@@ -5,6 +5,16 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [3.0.0] - 2017-05-05
+
+### Változott
+- A PhotoSync osztály össze lett vonva az ApiClient osztállyal. (Ha valaki külön használta a PhotoSync osztályt, akkor mostantól a syncPhotos() metódusát az ApiClient osztályon kell hívnia.)
+- Az ApiClient::syncPhotos() hívás mostantól PhotoSyncResult objektumot ad vissza.
+
+## Bekerült
+- PhotoSyncResult objektum, amelyet a ApiClient::syncPhotos() metódus ad vissza. Ezen változatlanul meghívhatók az eddig használt getErrors(), getPutPhotoErrors() stb. hibalekérdező metódusok.
+- A PhotoSyncResult osztályon új meghívható metódusok, amelyek egy saját id-val indexelt tömbben visszaadják kizárólag a hibaüzeneteket: getFetchPhotoErrorMessages(), getDeletePhotoErrorMessages(), getPutPhotoErrorMessages(), getErrorMessages()
+
 ## [2.2.2] - 2017-04-27
 
 ### Javítva
