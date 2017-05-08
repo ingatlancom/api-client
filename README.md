@@ -1,5 +1,5 @@
 ![ingatlan.com](http://ingatlan.com/images/logo.png) 
-# Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client)
+# Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client) [![Latest Stable Version](https://poser.pugx.org/ingatlancom/apiclient/v/stable.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![Total Downloads](https://poser.pugx.org/ingatlancom/apiclient/downloads.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![License](https://poser.pugx.org/ingatlancom/apiclient/license.svg)](https://packagist.org/packages/ingatlancom/apiclient)
 
 A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket. Az aktiválási igényt az ügyfélszolgálati kapcsolattartóknál kell jelezni.
 
@@ -180,7 +180,7 @@ A kliens egy olyan PHP [composer](https://getcomposer.org/) csomag, amely az API
 
 * optimális fotószinkronizálás, átméretezéssel
 
-## Step by step guide:
+## Telepítés:
 
 1. [Telepítsük a composert.](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
 
@@ -189,20 +189,91 @@ A kliens egy olyan PHP [composer](https://getcomposer.org/) csomag, amely az API
 ```json
 {
     "require": {
-        "ingatlancom/apiclient": "~2.0"
+        "ingatlancom/apiclient": "~3.0"
     }
 }
 ```
 
-1. A következő paranccsal indítsuk el a telepítést:
+3. A következő paranccsal indítsuk el a telepítést:
 
 ```bash
 php composer.phar install
 ```
 
-1. A letöltött csomagok a vendor mappába kerülnek. Példát a kliens használatára a [vendor/ingatlancom/apiclient/example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban találunk.
+4. A letöltött csomagok a vendor mappába kerülnek. Példát a kliens használatára a [vendor/ingatlancom/apiclient/example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban találunk.
 
-2. További infók: [https://getcomposer.org/doc/](https://getcomposer.org/doc/)
+5. További infók: [https://getcomposer.org/doc/](https://getcomposer.org/doc/)
+
+## Használat
+
+1. Az API kliensbe az autentikáció [JWT](https://jwt.io) tokenekkel történik. Sikeres azonosítás után a kliens egy tokent kap az API-tól. Ezt a tokent tároljuk le egy [Stash Pool](http://www.stashphp.com)-ba, hogy ne kelljen minden hívás előtt belépnünk. Pool példányosítása:
+
+```php
+$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
+$pool = new Stash\Pool($driver);
+```
+
+2. Példányosítsuk az API klienst:
+
+```php
+$apiUrl = 'https://apitest.ingatlan.com';
+$apiClient = new \IngatlanCom\ApiClient\ApiClient($apiUrl, $pool);
+```
+
+3. Bejelentkezés:
+
+```php
+$apiClient->login('username', 'password');
+```
+
+### Hirdetés feltöltése
+
+A beküldhető mezők pontos leírását az [alábbi linken](https://api.ingatlan.com/v1/doc/fields) tekintheti meg.
+
+```php
+$ad = array(
+    'ownId'           => 'x149395',
+    'listingType'     => 1,
+    'propertyType'    => 1,
+    'propertySubtype' => 2,
+    'priceHuf'        => 17500000
+     ...
+);
+
+$apiClient->putAd($ad);
+```
+
+### Hirdetés lekérdezése
+
+```php
+$apiClient->getAd('x149395');
+```
+
+### Hirdetés törlése
+
+Fizikailag a hirdetés nem törlődik, csak a státusza fog változni.
+
+```php
+$apiClient->deleteAd('x149395');
+```
+
+### Iroda összes hirdetés azonosítójának lekérdezése
+
+### Hirdetések szinkronizálása
+
+### Képek szinkronizálása
+
+### Kép feltöltése
+
+### Több kép feltöltése
+
+### Kép törlése
+
+### Több kép törlése
+
+### Hirdetés képeinek lekérdezése
+
+### Hirdetés képeinek sorrendezése
 
 ## Fotófunkciók
 
