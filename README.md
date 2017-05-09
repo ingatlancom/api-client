@@ -261,7 +261,7 @@ A x149395 saját id-jú hirdetés törlése:
 ```php
 $apiClient->deleteAd('x149395');
 ```
-(Fizikailag a hirdetés nem törlődik, csak a státusza fog "tölöm, de megtartom" státuszra váltani.)
+(Fizikailag a hirdetés nem törlődik, csak a státusza fog "törlöm, de megtartom" státuszra váltani.)
 
 ### Iroda összes hirdetés azonosítójának lekérdezése
 
@@ -274,7 +274,7 @@ Sikeres hívás esetén az $ids egy tömb lesz a feltöltött hirdetések id-iva
 
 Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés [paraméterei](https://api.ingatlan.com/v1/doc/fields), majd hívja meg a tömbbel a syncAds() függvényt.
 
-A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket és fel fogja tölteni azokat, amelyek a szerveren még nem léteznek, de a tömbben igen. A már létező hirdetések adatait is frissíti. 
+A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket, azonban a hiányzó hirdetéseket nem tölti fel és a szerveren lévőket nem módosítja. 
 ```php
 $ads = [
     'hirdetes1' => [
@@ -399,26 +399,3 @@ A $photoOrder tömbben a képek saját id-i a kívánt sorrendben legyenek.
 ## Példakód
 
 Egy példa az [example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban tekinthető meg. A példakód nem kötelezően használandó minta, csak javaslat.
-
-## Migráció 1-es verzióról 2-esre
-
-**FONTOS:** A függőségek frissítésével az api-client szükséges PHP verziója 5.3-ről 5.5-re emelkedett.
-
-Ezenkívül a két alábbi változást le kell követniük a partnereknek:
-
-1. A Stash driver példányosítása a következő módra változott:
-```php
-$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
-```
-
-1. Küldési hibát elkapni a következő módon lehet:
-```php
-    } catch (\GuzzleHttp\Exception\RequestException $e) {
-        print_r($e->getResponse()->getBody()->getContents());
-```
-
-## Migráció 2-es verzióról 3-asra
-
-A PhotoSync osztály megszüntetésre került. Funkcióját az ApiClient osztály vette át. Ha korábban példányosított PhotoSyncet és hívta rajta a syncPhotos() metódust, akkor mostantól az ApiClient osztállyal tegye meg ugyanezt.
-
-Az ApiClient::syncPhotos() metódus a 3-as verziótól kezdve PhotoSyncResult objektumot ad vissza, amelyen ugyanúgy használhatók a lekérdezések, mint a PhotoSync objektumon korábban. 
