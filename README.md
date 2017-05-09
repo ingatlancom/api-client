@@ -338,7 +338,7 @@ $photoData = [
     'order'    => 3,
     'title'    => 'Képfelirat 3',
     'labelId'  => null,
-    'imageData => base64_encode(file_get_contents('kepem.jpg'))
+    'imageData => file_get_contents('kepem.jpg')
 ];
 $ids = $apiClient->putPhoto('x149395', $photoData);
 ```
