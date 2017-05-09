@@ -325,10 +325,14 @@ $ids = $apiClient->syncPhotos(
 );
 ```
 
-A $photos [tömbben a feltöltendő fotók](#fotó) legyenek, az $uploadedPhotos tömbben pedig a szerveren található fotók. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani.
+### $photos
+A $photos tömbben a feltöltendő fotók [adatai](#fotó) legyenek. A syncPhotos() függvény használatakor a fotó adatai tömbben lehetséges a "location" kulcs használata. Itt meg kell adni a képfájl elérési útját, amely lehet az adott számítógépen elérhető fájl, vagy akár URL is. A kliens a location mező alapján beolvassa a képfájlt, elvégzi rajta az átméretezést (ha szükséges) és feltöltéskor a megfelelő adatként ("imageData") fel fogja küldeni a képfájl tartalmát.
 
 ### $forceImageUpdate
-Alapvető esetben a syncPhotos metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fela hirdetés fotóit.
+Alapvető esetben a syncPhotos metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fel a hirdetés fotóit.
+
+### $uploadedPhotos
+Az $uploadedPhotos paraméter tömbben a szerveren található fotókat kell megadni. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani és a kliens automatikusan lekérdezi a képeket a szerverről.
 
 ### $paralellDownload
 A syncPhotos metódus 5. paraméterében azt lehet beállítani, hogy - amennyiben a partner fotói http protokollal kerülnek letöltésre - ezt a kliens egyenként, vagy párhuzamosan végezze. Alapvető esetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem okoz gondot, nyugodtan bekapcsolható.
@@ -338,6 +342,8 @@ A képek átméretezése kliens oldalon történik, ezért [Imagick](http://php.
 ### Kép feltöltése
 
 A fotó tömb értékeitről [itt](#fotó) talál információt.
+
+A putPhoto() használatakor a képfájl adatainál nem használható a "location" kulcs a syncPhotos() függvénnynel ellentétben. Itt kizárólag az imageData kulcs alatt küldhető a képfájl base64 kódolt tartalma.
 ```php
 $photoData = [
     'ownId'    => 'kep3',
