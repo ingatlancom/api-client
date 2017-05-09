@@ -1,6 +1,5 @@
 <?php
-
-$testAd1 = array(
+$testAd1 = [
     'ownId'                 => 'x149395',
     'listingType'           => 1,
     'propertyType'          => 1,
@@ -47,9 +46,8 @@ $testAd1 = array(
     'airConditioner'        => 0,
     'isRentRight'           => 0,
     'agentId'               => 12111
-);
-
-$testAd2 = array(
+];
+$testAd2 = [
     'ownId'                 => 'x96602',
     'listingType'           => 1,
     'propertyType'          => 1,
@@ -91,26 +89,28 @@ $testAd2 = array(
     'airConditioner'        => 0,
     'isRentRight'           => 0,
     'agentId'               => 739
-);
+];
+$testAds = [
+    'x149395' => $testAd1,
+    'x96602'  => $testAd2
+];
 
-$testAds = array('x149395' => $testAd1, 'x96602' => $testAd2);
-
-$testPhotos = array(
-    'x149395' => array(
-        array(
+$testPhotos = [
+    'x149395' => [
+        [
             'ownId'    => 'kep1',
             'order'    => 1,
             'title'    => 'Képfelirat',
             'location' => 'http://lorempixel.com/800/600/city/1/',
             'labelId'  => null
-        ),
-        array(
+        ],
+        [
             'ownId'    => 'kep2',
             'order'    => 2,
             'title'    => 'Képfelirat',
             'location' => 'http://lorempixel.com/800/600/city/2/',
             'labelId'  => null
-        )
-    ),
-    'x96602'  => array()
-);
+        ]
+    ],
+    'x96602'  => []
+];

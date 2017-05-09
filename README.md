@@ -1,5 +1,5 @@
 ![ingatlan.com](http://ingatlan.com/images/logo.png) 
-# Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client)
+# Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client) [![Latest Stable Version](https://poser.pugx.org/ingatlancom/apiclient/v/stable.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![Total Downloads](https://poser.pugx.org/ingatlancom/apiclient/downloads.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![License](https://poser.pugx.org/ingatlancom/apiclient/license.svg)](https://packagist.org/packages/ingatlancom/apiclient)
 
 A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket. Az aktiválási igényt az ügyfélszolgálati kapcsolattartóknál kell jelezni.
 
@@ -180,62 +180,222 @@ A kliens egy olyan PHP [composer](https://getcomposer.org/) csomag, amely az API
 
 * optimális fotószinkronizálás, átméretezéssel
 
-## Step by step guide:
+## Telepítés
 
-1. [Telepítsük a composert.](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
+1. [Telepítsük a composert.](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx) (További infók: [https://getcomposer.org/doc/](https://getcomposer.org/doc/))
 
 2. Hozzunk létre egy composer.json fájlt az alábbi tartalommal:
 
 ```json
 {
     "require": {
-        "ingatlancom/apiclient": "~2.0"
+        "ingatlancom/apiclient": "~3.0"
     }
 }
 ```
 
-1. A következő paranccsal indítsuk el a telepítést:
+3. A következő paranccsal indítsuk el a telepítést:
 
 ```bash
 php composer.phar install
 ```
 
-1. A letöltött csomagok a vendor mappába kerülnek. Példát a kliens használatára a [vendor/ingatlancom/apiclient/example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban találunk.
+4. A letöltött csomagok a vendor mappába kerülnek.
 
-2. További infók: [https://getcomposer.org/doc/](https://getcomposer.org/doc/)
+## Használat
 
-## Fotófunkciók
+A kliens használatához felhasználónév és jelszó szükséges, amelyet az ingatlan.com kapcsolattartójától kap meg.
 
-### SyncPhotos
+1. Az API kliensbe az autentikáció [JWT](https://jwt.io) tokenekkel történik. Sikeres azonosítás után a kliens egy tokent kap az API-tól. Ezt a tokent tároljuk le egy [Stash Pool](http://www.stashphp.com)-ba, hogy ne kelljen minden hívás előtt belépnünk. Pool példányosítása:
 
-#### ForceImageDataUpdate
+```php
+$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
+$pool = new Stash\Pool($driver);
+```
+(A "/tmp/ingatlancom" helyett adja meg azt a könyvtárat, ahol a program ideiglenes fájlokat tárolhat a szerveren.)
 
-Alapvető esetben a syncPhotos metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fela hirdetés fotóit.
+2. Példányosítsuk az API klienst:
 
-#### Párhuzamos letöltés
+```php
+$apiUrl = 'https://apitest.ingatlan.com';
+$apiClient = new \IngatlanCom\ApiClient\ApiClient($apiUrl, $pool);
+```
 
-A syncPhotos metódus 5. paraméterében azt lehet beállítani, hogy - amennyiben a partner fotói http protokollal kerülnek letöltésre - ezt a kliens egyenként, vagy párhuzamosan végezze. Alapvető esetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem okoz gondot, nyugodtan bekapcsolható.
+(Éles rendszerre történő betöltés esetén az $apiUrl értéke "https://api.ingatlan.com".)
+
+3. Bejelentkezés:
+
+```php
+$apiClient->login('username', 'password');
+```
+
+Az alább következő műveletek csak a bejelentkezés meghívása után végezhetők el.
+
+### Hirdetés feltöltése
+
+Az $ad tömbben adja meg a hirdetés paramétereit. (A beküldhető mezők pontos leírását az [alábbi linken](https://api.ingatlan.com/v1/doc/fields) tekintheti meg.)
+
+```php
+$ad = [
+    'ownId'           => 'x149395',
+    'listingType'     => 1,
+    'propertyType'    => 1,
+    'propertySubtype' => 2,
+    'priceHuf'        => 17500000
+     ...
+];
+$apiClient->putAd($ad);
+```
+
+### Hirdetés lekérdezése
+
+A x149395 saját id-jú hirdetés lekérdezése:
+```php
+$ad = $apiClient->getAd('x149395');
+```
+Sikeres hívás esetén az $ad változó egy tömb lesz a hirdetés értékeivel.
+
+### Hirdetés törlése
+
+A x149395 saját id-jú hirdetés törlése:
+```php
+$apiClient->deleteAd('x149395');
+```
+(Fizikailag a hirdetés nem törlődik, csak a státusza fog "törlöm, de megtartom" státuszra váltani.)
+
+### Iroda összes hirdetés azonosítójának lekérdezése
+
+```php
+$ids = $apiClient->getAdIds();
+```
+Sikeres hívás esetén az $ids egy tömb lesz a feltöltött hirdetések id-ival.
+
+### Hirdetések szinkronizálása
+
+Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés [paraméterei](https://api.ingatlan.com/v1/doc/fields), majd hívja meg a tömbbel a syncAds() függvényt.
+
+A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket, azonban a hiányzó hirdetéseket nem tölti fel és a szerveren lévőket nem módosítja. 
+```php
+$ads = [
+    'hirdetes1' => [
+        'ownId'           => 'hirdetes1',
+        'listingType'     => 1,
+        'propertyType'    => 1,
+        'propertySubtype' => 2,
+        'priceHuf'        => 12500000
+    ],
+    'hirdetes2' => [
+        'ownId'           => 'hirdetes2',
+        'listingType'     => 1,
+        'propertyType'    => 1,
+        'propertySubtype' => 2,
+        'priceHuf'        => 17500000
+    ]
+    ...
+];
+$ids = $apiClient->syncAds($ads);
+```
+
+### Képek szinkronizálása
+
+Az x149395 saját id-jú hirdetéshez a fotók szinkronizálása:
+```php
+$photos = [
+    [
+        'ownId'    => 'kep1',
+        'order'    => 1,
+        'title'    => 'Képfelirat 1',
+        'location' => 'http://lorempixel.com/800/600/city/1/',
+        'labelId'  => null
+    ],
+    [
+        'ownId'    => 'kep2',
+        'order'    => 2,
+        'title'    => 'Képfelirat 2',
+        'location' => 'http://lorempixel.com/800/600/city/2/',
+        'labelId'  => null
+    ]
+];
+$ids = $apiClient->syncPhotos(
+    'x149395',
+    $photos,
+    $forceImageDataUpdate,
+    $uploadedPhotos,
+    $paralellDownload
+);
+```
+
+### $photos
+A $photos tömbben a feltöltendő fotók [adatai](#fotó) legyenek. A syncPhotos() függvény használatakor a fotó adatai tömbben lehetséges a "location" kulcs használata. Itt meg kell adni a képfájl elérési útját, amely lehet az adott számítógépen elérhető fájl, vagy akár URL is. A kliens a location mező alapján beolvassa a képfájlt, elvégzi rajta az átméretezést (ha szükséges) és feltöltéskor a megfelelő adatként ("imageData") fel fogja küldeni a képfájl tartalmát.
+
+### $forceImageUpdate
+Alapvető esetben a syncPhotos() metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos() metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fel a hirdetés fotóit.
+
+### $uploadedPhotos
+Az $uploadedPhotos paraméter tömbben a szerveren található fotókat kell megadni. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani és a kliens automatikusan lekérdezi a képeket a szerverről.
+
+### $paralellDownload
+A syncPhotos() metódus 5. paraméterében azt lehet beállítani, hogy - amennyiben a partner fotói http protokollal kerülnek letöltésre - ezt a kliens egyenként, vagy párhuzamosan végezze. Alapvető esetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem okoz gondot, nyugodtan bekapcsolható.
 
 A képek átméretezése kliens oldalon történik, ezért [Imagick](http://php.net/manual/en/book.imagick.php) vagy [GD](http://php.net/manual/en/book.image.php) php bővítmény szükséges a  használathoz.
+
+### Kép feltöltése
+
+A $photoData tömbben adja meg a fotó adatait. A fotó tömb értékeitről [itt](#fotó) talál információt.
+
+(A putPhoto() használatakor a képfájl adatainál nem használható a "location" kulcs a syncPhotos() függvénnynel ellentétben. Itt kizárólag az imageData kulcs alatt küldhető a képfájl base64 kódolt tartalma.)
+```php
+$photoData = [
+    'ownId'    => 'kep3',
+    'order'    => 3,
+    'title'    => 'Képfelirat 3',
+    'labelId'  => null,
+    'imageData => base64_encode(file_get_contents('kepem.jpg'))
+];
+$ids = $apiClient->putPhoto('x149395', $photoData);
+```
+
+### Több kép feltöltése
+
+A $photos tömbbe adjon meg több fotót a [Kép feltöltésénél](#kép-feltöltése) látható elemekből.
+```php
+$ids = $apiClient->putPhotosMulti('x149395', $photos);
+```
+
+### Kép törlése
+
+A x149395 saját id-jú hirdetésnél a kep123 saját id-jú kép törlése.
+```php
+$ids = $apiClient->deletePhoto('x149395', 'kep123');
+```
+
+### Több kép törlése
+
+A $photoIds tömbben a törlendő képek saját id-jait kell megadni.
+
+Képek törlése a x149395 saját id-jú hirdetésnél:
+```php
+$photoIds = ['kep1', 'kep2'];
+$ids = $apiClient->deletePhotosMulti('x149395', $photoIds);
+```
+
+### Hirdetés képeinek lekérdezése
+
+A x149395 saját id-jú hirdetés képeinek lekérdezése:
+```php
+$photos = $apiClient->getPhotos('x149395');
+```
+Sikeres hívás esetén a $photos egy tömb lesz a hirdetés képeinek adataival.
+
+### Hirdetés képeinek sorrendezése
+
+A képek sorrendezése a x149395 saját id-jú hirdetésnél:
+```php
+$photoOrder = ['kep1', 'kep2', 'kep3'];
+$ids = $apiClient->putPhotoOrder('x149395', $photoOrder);
+```
+A $photoOrder tömbben a képek saját id-i a kívánt sorrendben legyenek.
 
 ## Példakód
 
 Egy példa az [example/example.php](https://github.com/ingatlancom/api-client/blob/master/example/example.php) fájlban tekinthető meg. A példakód nem kötelezően használandó minta, csak javaslat.
-
-## Migráció 1-es verzióról 2-esre
-
-**FONTOS:** A függőségek frissítésével az api-client szükséges PHP verziója 5.3-ről 5.5-re emelkedett.
-
-Ezenkívül a két alábbi változást le kell követniük a partnereknek:
-
-1. A Stash driver példányosítása a következő módra változott:
-```php
-$driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
-```
-
-1. Küldési hibát elkapni a következő módon lehet:
-```php
-    } catch (\GuzzleHttp\Exception\RequestException $e) {
-        print_r($e->getResponse()->getBody()->getContents());
-```
-
