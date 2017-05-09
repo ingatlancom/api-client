@@ -272,25 +272,13 @@ Sikeres hívás esetén az $ids egy tömb lesz a feltöltött hirdetések id-iva
 
 ### Hirdetések szinkronizálása
 
-Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés [paraméterei](https://api.ingatlan.com/v1/doc/fields), majd hívja meg a tömbbel a syncAds() függvényt.
+A syncAds() függvény letörli az ingatlan.com szerveréről az Önök rendszerében már nem szereplő hirdetéseket.
 
-A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket, azonban a hiányzó hirdetéseket nem tölti fel és a szerveren lévőket nem módosítja. 
+Az $ads tömbben sorolja fel a rendszerükben létező hirdetések saját id-jait:
 ```php
 $ads = [
-    'hirdetes1' => [
-        'ownId'           => 'hirdetes1',
-        'listingType'     => 1,
-        'propertyType'    => 1,
-        'propertySubtype' => 2,
-        'priceHuf'        => 12500000
-    ],
-    'hirdetes2' => [
-        'ownId'           => 'hirdetes2',
-        'listingType'     => 1,
-        'propertyType'    => 1,
-        'propertySubtype' => 2,
-        'priceHuf'        => 17500000
-    ]
+    'hirdetes1',
+    'hirdetes2'
     ...
 ];
 $ids = $apiClient->syncAds($ads);
