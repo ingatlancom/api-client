@@ -386,7 +386,7 @@ A $photoOrder tömbben a képek saját id-i a kívánt sorrendben legyenek.
 
 ## API státusz ellenőrzése
 
-A checkApiStatus() függvény hívásával lehetőség van az API állapotát lekérdezni. A függvény true-t ad vissza, ha minden alrendszerünk üzemel és false-t, ha a betöltés valamilyen hiba miatt nem üzemel. False-t adunk vissza akkor is, ha kliens oldalon van probléma, tehát például nincs internetkapcsolat és nem érik el a szervereinket.
+A checkApiStatus() függvény hívásával lehetőség van az API állapotát lekérdezni. A függvény true-t ad vissza, ha minden alrendszerünk működik és false-t, ha a betöltés valamilyen hiba miatt nem üzemel. False-t adunk vissza akkor is, ha kliens oldalon van probléma, tehát például nincs internetkapcsolat és a kliens nem éri el a szervereinket.
 ```php
 $isOk = $apiClient->checkApiStatus();
 ```
