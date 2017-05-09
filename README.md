@@ -261,7 +261,7 @@ A x149395 saját id-jú hirdetés törlése:
 ```php
 $apiClient->deleteAd('x149395');
 ```
-(Fizikailag a hirdetés nem törlődik, csak a státusza fog változni.)
+(Fizikailag a hirdetés nem törlődik, csak a státusza fog "tölöm, de megtartom" státuszra váltani.)
 
 ### Iroda összes hirdetés azonosítójának lekérdezése
 
@@ -272,7 +272,7 @@ Sikeres hívás esetén az $ids egy tömb lesz a feltöltött hirdetések id-iva
 
 ### Hirdetések szinkronizálása
 
-Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés paraméterei, majd hívja meg a syncAds függvényt.
+Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés [paraméterei](https://api.ingatlan.com/v1/doc/fields), majd hívja meg a tömbbel a syncAds() függvényt.
 
 A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket és fel fogja tölteni azokat, amelyek a szerveren még nem léteznek, de a tömbben igen. A már létező hirdetések adatait is frissíti. 
 ```php
@@ -329,21 +329,21 @@ $ids = $apiClient->syncPhotos(
 A $photos tömbben a feltöltendő fotók [adatai](#fotó) legyenek. A syncPhotos() függvény használatakor a fotó adatai tömbben lehetséges a "location" kulcs használata. Itt meg kell adni a képfájl elérési útját, amely lehet az adott számítógépen elérhető fájl, vagy akár URL is. A kliens a location mező alapján beolvassa a képfájlt, elvégzi rajta az átméretezést (ha szükséges) és feltöltéskor a megfelelő adatként ("imageData") fel fogja küldeni a képfájl tartalmát.
 
 ### $forceImageUpdate
-Alapvető esetben a syncPhotos metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fel a hirdetés fotóit.
+Alapvető esetben a syncPhotos() metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos() metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fel a hirdetés fotóit.
 
 ### $uploadedPhotos
 Az $uploadedPhotos paraméter tömbben a szerveren található fotókat kell megadni. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani és a kliens automatikusan lekérdezi a képeket a szerverről.
 
 ### $paralellDownload
-A syncPhotos metódus 5. paraméterében azt lehet beállítani, hogy - amennyiben a partner fotói http protokollal kerülnek letöltésre - ezt a kliens egyenként, vagy párhuzamosan végezze. Alapvető esetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem okoz gondot, nyugodtan bekapcsolható.
+A syncPhotos() metódus 5. paraméterében azt lehet beállítani, hogy - amennyiben a partner fotói http protokollal kerülnek letöltésre - ezt a kliens egyenként, vagy párhuzamosan végezze. Alapvető esetben a funkció ki van kapcsolva, de ha a partner szervereinek ez nem okoz gondot, nyugodtan bekapcsolható.
 
 A képek átméretezése kliens oldalon történik, ezért [Imagick](http://php.net/manual/en/book.imagick.php) vagy [GD](http://php.net/manual/en/book.image.php) php bővítmény szükséges a  használathoz.
 
 ### Kép feltöltése
 
-A fotó tömb értékeitről [itt](#fotó) talál információt.
+A $photoData tömbben adja meg a fotó adatait. A fotó tömb értékeitről [itt](#fotó) talál információt.
 
-A putPhoto() használatakor a képfájl adatainál nem használható a "location" kulcs a syncPhotos() függvénnynel ellentétben. Itt kizárólag az imageData kulcs alatt küldhető a képfájl base64 kódolt tartalma.
+(A putPhoto() használatakor a képfájl adatainál nem használható a "location" kulcs a syncPhotos() függvénnynel ellentétben. Itt kizárólag az imageData kulcs alatt küldhető a képfájl base64 kódolt tartalma.)
 ```php
 $photoData = [
     'ownId'    => 'kep3',
@@ -357,7 +357,7 @@ $ids = $apiClient->putPhoto('x149395', $photoData);
 
 ### Több kép feltöltése
 
-A $photos tömbbe adjon meg több fotót a Kép feltöltésénél látható elemekből.
+A $photos tömbbe adjon meg több fotót a [Kép feltöltésénél](#kép-feltöltése) látható elemekből.
 ```php
 $ids = $apiClient->putPhotosMulti('x149395', $photos);
 ```
@@ -371,7 +371,9 @@ $ids = $apiClient->deletePhoto('x149395', 'kep123');
 
 ### Több kép törlése
 
-A $photoIds tömbben a törlendő képek saját idját kell megadni. Képek törlése a x149395 saját id-jú hirdetésnél:
+A $photoIds tömbben a törlendő képek saját id-jait kell megadni.
+
+Képek törlése a x149395 saját id-jú hirdetésnél:
 ```php
 $photoIds = ['kep1', 'kep2'];
 $ids = $apiClient->deletePhotosMulti('x149395', $photoIds);
@@ -383,16 +385,16 @@ A x149395 saját id-jú hirdetés képeinek lekérdezése:
 ```php
 $photos = $apiClient->getPhotos('x149395');
 ```
-Sikeres hívás esetén a $photos egy tömb lesz a hirdetés kepeinek adataival.
+Sikeres hívás esetén a $photos egy tömb lesz a hirdetés képeinek adataival.
 
 ### Hirdetés képeinek sorrendezése
 
-A képek sorrendezése a x149395 saját idjú hirdetésnél:
+A képek sorrendezése a x149395 saját id-jú hirdetésnél:
 ```php
 $photoOrder = ['kep1', 'kep2', 'kep3'];
 $ids = $apiClient->putPhotoOrder('x149395', $photoOrder);
 ```
-A $photoOrder tömbben a képek saját ID-i a kívánt sorrendben legyenek.
+A $photoOrder tömbben a képek saját id-i a kívánt sorrendben legyenek.
 
 ## Példakód
 
@@ -417,6 +419,6 @@ $driver = new Stash\Driver\FileSystem(['path' => '/tmp/ingatlancom/']);
 
 ## Migráció 2-es verzióról 3-asra
 
-A PhotoSync osztály megszüntetésre került. Funkcióját az ApiClient osztály vette át. Ha korábban példányosított PhotoSyncet és hívta rajta a syncPhotos metódust, akkor mostantól az ApiClient osztállyal tegye meg ugyanezt.
+A PhotoSync osztály megszüntetésre került. Funkcióját az ApiClient osztály vette át. Ha korábban példányosított PhotoSyncet és hívta rajta a syncPhotos() metódust, akkor mostantól az ApiClient osztállyal tegye meg ugyanezt.
 
 Az ApiClient::syncPhotos() metódus a 3-as verziótól kezdve PhotoSyncResult objektumot ad vissza, amelyen ugyanúgy használhatók a lekérdezések, mint a PhotoSync objektumon korábban. 
