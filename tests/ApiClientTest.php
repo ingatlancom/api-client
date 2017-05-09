@@ -191,4 +191,15 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(1, $result->getFetchPhotoErrors());
         $this->assertCount(0, $result->getPutPhotoErrors());
     }
+
+    public function testCheckApiStatus()
+    {
+        $client = $this->getClient(
+            [
+                ['statusCode' => 200, 'fileName' => 'checkApiStatus']
+            ]
+        );
+        $isOk = $client->checkApiStatus();
+        $this->assertTrue($isOk);
+    }
 }
