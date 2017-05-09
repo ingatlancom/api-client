@@ -272,6 +272,9 @@ Sikeres hívás esetén az $ids egy tömb lesz a feltöltött hirdetések id-iva
 
 ### Hirdetések szinkronizálása
 
+Adja meg egy tömbben az összes hirdetését úgy, hogy a tömb kulcsai a hirdetések saját id-i legyenek, a tömb elemei pedig a hirdetés paraméterei, majd hívja meg a syncAds függvényt.
+
+A szinkronizálás le fogja törölni a szerverről a tömbben nem szereplő hirdetéseket és fel fogja tölteni azokat, amelyek a szerveren még nem léteznek, de a tömbben igen. A már létező hirdetések adatait is frissíti. 
 ```php
 $ads = [
     'hirdetes1' => [
@@ -298,7 +301,20 @@ $ids = $apiClient->syncAds($ads);
 Az x149395 saját id-jú hirdetéshez a fotók szinkronizálása:
 ```php
 $photos = [
-    ...
+    [
+        'ownId'    => 'kep1',
+        'order'    => 1,
+        'title'    => 'Képfelirat 1',
+        'location' => 'http://lorempixel.com/800/600/city/1/',
+        'labelId'  => null
+    ],
+    [
+        'ownId'    => 'kep2',
+        'order'    => 2,
+        'title'    => 'Képfelirat 2',
+        'location' => 'http://lorempixel.com/800/600/city/2/',
+        'labelId'  => null
+    ]
 ];
 $ids = $apiClient->syncPhotos(
     'x149395',
@@ -309,7 +325,7 @@ $ids = $apiClient->syncPhotos(
 );
 ```
 
-A $photos tömbben a feltöltendő fotók legyenek, az $uploadedPhotos tömbben pedig a szerveren található fotók. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani.
+A $photos [tömbben a feltöltendő fotók](#fotó) legyenek, az $uploadedPhotos tömbben pedig a szerveren található fotók. Ha ez utóbbit nem tudjuk, célszerű ezt a paramétert null-ra állítani.
 
 ### $forceImageUpdate
 Alapvető esetben a syncPhotos metódus a képek md5 hash értéke alapján dönti el, hogy változott-e az adott kép, és szükséges-e újra feltölteni az ingatlan.com szervereire. A syncPhotos metódus 3. paraméterében kikapcsolhatjuk ezt az ellenőrzést, hogy a kliens minden esetben töltse fela hirdetés fotóit.
@@ -321,18 +337,21 @@ A képek átméretezése kliens oldalon történik, ezért [Imagick](http://php.
 
 ### Kép feltöltése
 
+A fotó tömb értékeitről [itt](#fotó) talál információt.
 ```php
 $photoData = [
-    'order' => ,
-    'title' => ,
-    'labelId' =>,
-    'imageData' =>
+    'ownId'    => 'kep3',
+    'order'    => 3,
+    'title'    => 'Képfelirat 3',
+    'labelId'  => null,
+    'imageData => base64_encode(file_get_contents('kepem.jpg'))
 ];
 $ids = $apiClient->putPhoto('x149395', $photoData);
 ```
 
 ### Több kép feltöltése
 
+A $photos tömbbe adjon meg több fotót a Kép feltöltésénél látható elemekből.
 ```php
 $ids = $apiClient->putPhotosMulti('x149395', $photos);
 ```
@@ -348,7 +367,7 @@ $ids = $apiClient->deletePhoto('x149395', 'kep123');
 
 A $photoIds tömbben a törlendő képek saját idját kell megadni. Képek törlése a x149395 saját id-jú hirdetésnél:
 ```php
-$photoIds = ['kep1', 'kep2'K];
+$photoIds = ['kep1', 'kep2'];
 $ids = $apiClient->deletePhotosMulti('x149395', $photoIds);
 ```
 
