@@ -673,6 +673,8 @@ class ApiClient
      */
     private function arePhotosDifferent(array $photo1, array $photo2)
     {
+        isset($photo1['labelId']) ?: $photo1['labelId'] = null;
+        isset($photo2['labelId']) ?: $photo2['labelId'] = null;
         if (
             $photo1['title'] != $photo2['title'] ||
             $photo1['labelId'] != $photo2['labelId']

@@ -84,6 +84,10 @@ class PhotoLabelEnum
             self::$valueCache = $ref->getConstants();
         }
 
-        return in_array($value, self::$valueCache);
+        if ($value === null || in_array($value, self::$valueCache)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
