@@ -154,7 +154,7 @@ A fotó tömb kulcsai:
 
 * title: a kép felirata, string(100)
 
-* labelId: képfelirat azonosítója, a [képfeliratok itt találhatóak](https://api.ingatlan.com/doc_references/photo_labels.json)
+* labelId: a képfelirat azonosítója, opcionális. A [lehetséges képfeliratok ebben az állományban találhatók](https://github.com/ingatlancom/api-client/blob/master/lib/ApiClient/Enum/PhotoLabelEnum.php).
 
 * md5Hash: csak válaszban, a feltöltött, átméretezett kép md5 hash értéke, segítségével ellenőrizni tudjuk, hogy a kliensnek a későbbi feltöltésekkor szükséges-e újra küldenie a képet
 
@@ -288,20 +288,21 @@ $ids = $apiClient->syncAds($ads);
 
 Az x149395 saját id-jú hirdetéshez a fotók szinkronizálása:
 ```php
+use IngatlanCom\ApiClient\Enum\PhotoLabelEnum;
+
 $photos = [
     [
         'ownId'    => 'kep1',
         'order'    => 1,
         'title'    => 'Képfelirat 1',
         'location' => 'http://lorempixel.com/800/600/city/1/',
-        'labelId'  => null
+        'labelId'  => PhotoLabelEnum::KORNYEK
     ],
     [
         'ownId'    => 'kep2',
         'order'    => 2,
         'title'    => 'Képfelirat 2',
         'location' => 'http://lorempixel.com/800/600/city/2/',
-        'labelId'  => null
     ]
 ];
 $ids = $apiClient->syncPhotos(

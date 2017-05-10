@@ -1,4 +1,6 @@
 <?php
+use IngatlanCom\ApiClient\Enum\PhotoLabelEnum;
+
 $testAd1 = [
     'ownId'                 => 'x149395',
     'listingType'           => 1,
@@ -102,14 +104,13 @@ $testPhotos = [
             'order'    => 1,
             'title'    => 'Képfelirat',
             'location' => 'http://lorempixel.com/800/600/city/1/',
-            'labelId'  => null
+            'labelId'  => PhotoLabelEnum::KORNYEK
         ],
         [
             'ownId'    => 'kep2',
             'order'    => 2,
             'title'    => 'Képfelirat',
             'location' => 'http://lorempixel.com/800/600/city/2/',
-            'labelId'  => null
         ]
     ],
     'x96602'  => []
