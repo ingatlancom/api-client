@@ -9,6 +9,8 @@ use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use IngatlanCom\ApiClient\Enum\PhotoLabelEnum;
+use IngatlanCom\ApiClient\Exception\InvalidValueException;
 use IngatlanCom\ApiClient\Exception\JSendFailException;
 use IngatlanCom\ApiClient\Exception\JWTTokenException;
 use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
@@ -150,13 +152,15 @@ class ApiClient
      */
     private function getTokenTTL($token)
     {
-        $data = base64_decode(explode('.', $token)[1]);
-        $tokenData = json_decode($data);
-        if ($tokenData) {
-            return $tokenData->exp - $tokenData->iat - $tokenData->clock_skew - 60;
-        } else {
-            throw new JWTTokenException("Invalid token!");
+        $tokenArr = explode('.', $token);
+        if (count($tokenArr) > 1) {
+            $data = base64_decode($tokenArr[1]);
+            $tokenData = json_decode($data);
+            if ($tokenData) {
+                return $tokenData->exp - $tokenData->iat - $tokenData->clock_skew - 60;
+            }
         }
+        throw new JWTTokenException(sprintf("Invalid token: %s", $token));
     }
 
     /**
@@ -254,6 +258,10 @@ class ApiClient
     private function createPhotoPutRequest($adOwnId, array $photoData)
     {
         $photoOwnId = $photoData['ownId'];
+
+        if (isset($photoData['labelId']) && !PhotoLabelEnum::validate($photoData['labelId'])) {
+            throw new InvalidValueException(sprintf("labelId értéke érvénytelen a %s fotónál: %s", $photoOwnId, $photoData['labelId']));
+        }
 
         unset($photoData['ownId']);
         unset($photoData['location']);

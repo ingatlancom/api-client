@@ -1,6 +1,9 @@
 <?php
 namespace IngatlanCom\ApiClient\Enum;
 
+/**
+ * A lehetséges fotó címkéket tartalmazó osztály
+ */
 class PhotoLabelEnum
 {
     /** alaprajz */
@@ -65,4 +68,22 @@ class PhotoLabelEnum
     const TAROLO = 30;
     /** egyéb helyiség */
     const EGYEB_HELYISEG = 31;
+
+    /** @var array $valueCache */
+    public static $valueCache = [];
+
+    /**
+     * @param int $value
+     * @return bool
+     */
+    public static function validate($value)
+    {
+        if (empty(self::$valueCache)) {
+            $class = get_called_class();
+            $ref = new \ReflectionClass($class);
+            self::$valueCache = $ref->getConstants();
+        }
+
+        return in_array($value, self::$valueCache);
+    }
 }
