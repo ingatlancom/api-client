@@ -515,6 +515,8 @@ class ApiClient
         array $uploadedPhotos = null,
         $paralellDownload = false
     ) {
+        $this->photoPutQueue = [];
+        $this->photoSortQueue = [];
         $errors = [];
 
         if (null === $uploadedPhotos) {
