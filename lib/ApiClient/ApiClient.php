@@ -252,8 +252,9 @@ class ApiClient
      * Fotó feltöltés Request létrehozása
      *
      * @param string $adOwnId hirdetés saját azonosítója
-     * @param array  $photoData fotó adatok
+     * @param array $photoData fotó adatok
      * @return RequestInterface
+     * @throws InvalidValueException
      */
     private function createPhotoPutRequest($adOwnId, array $photoData)
     {
