@@ -737,4 +737,24 @@ class ApiClient
 
         return $this->putPhotoOrder($adOwnId, $order);
     }
+
+    /**
+     * @return bool
+     */
+    public function checkApiStatus()
+    {
+        $headers = ['Accept' => 'application/json'];
+        $request = new Request('GET', "/status/", $headers);
+
+        try {
+            $response = $this->client->send($request);
+            $this->parseResponse($response);
+        } catch (TransferException $e) {
+            return false;
+        } catch (ServerErrorException $e) {
+            return false;
+        }
+
+        return true;
+    }
 }

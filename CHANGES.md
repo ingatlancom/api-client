@@ -5,6 +5,11 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [3.1.0] - 2017-05-??
+
+## Bekerült
+- ApiClient::checkApiStatus(), amivel az automata betöltés rendszerének állapotát lehet lekérdezni. Visszatérési érték: true / false. (True esetén a rendszereink működnek, false esetén valamilyen probléma van szerver vagy kliens oldalon.)
+
 ## [3.0.0] - 2017-05-05
 
 ### Változott
