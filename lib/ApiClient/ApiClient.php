@@ -675,6 +675,8 @@ class ApiClient
     {
         isset($photo1['labelId']) ?: $photo1['labelId'] = null;
         isset($photo2['labelId']) ?: $photo2['labelId'] = null;
+        isset($photo1['title']) ?: $photo1['title'] = null;
+        isset($photo2['title']) ?: $photo2['title'] = null;
         if (
             $photo1['title'] != $photo2['title'] ||
             $photo1['labelId'] != $photo2['labelId']
@@ -736,6 +738,8 @@ class ApiClient
      */
     private function syncPhotosPutOrder($adOwnId, array $photosByOwnId)
     {
+        isset($a['order']) ?: $a['order'] = null;
+        isset($b['order']) ?: $b['order'] = null;
         usort($photosByOwnId, function ($a, $b) {
             if ($a['order'] == $b['order']) {
                 return 0;
