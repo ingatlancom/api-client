@@ -9,6 +9,8 @@ A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában író
 
 ### Bekerült
 - PhotoLabelEnum osztály, amely tartalmazza a fotóknál beküldhető labelId értékeket
+- InvalidValueException kivétel (amelyet akkor dobunk, ha fotófeltöltésnél valamelyik paraméter validációja nem sikerül)
+- labelId és title validáció fotófeltöltéskor
 
 ### Javítva
 - a fotófeltöltés során hiányzó paraméterek intelligensebb kezelése
