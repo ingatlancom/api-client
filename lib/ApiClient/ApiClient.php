@@ -34,7 +34,7 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
-    const CLIENT_VERSION = "3.1.0";
+    const CLIENT_VERSION = "3.2.0";
     const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
     const PUT_WITH_IMAGE_DATA = 2;
     const PUT_WITHOUT_IMAGE_DATA = 1;
