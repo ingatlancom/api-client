@@ -261,8 +261,17 @@ class ApiClient
         $photoOwnId = $photoData['ownId'];
 
         if (isset($photoData['labelId']) && !PhotoLabelEnum::validate($photoData['labelId'])) {
-            throw new InvalidValueException(sprintf("labelId értéke érvénytelen a %s fotónál: %s", $photoOwnId, $photoData['labelId']));
+            throw new InvalidValueException(sprintf("A labelId értéke érvénytelen a %s fotónál: %s", $photoOwnId, $photoData['labelId']));
         }
+        if (isset($photoData['title']) && $photoData['title'] != '') {
+            $encoding = mb_detect_encoding($photoData['title'], ['UTF-8', 'ISO-8859-2'], true);
+            if ($encoding == 'ISO-8859-2') {
+                $photoData['title'] = mb_convert_encoding($photoData['title'], 'UTF-8', 'ISO-8859-2');
+            } else if ($encoding === false) {
+                throw new InvalidValueException(sprintf("A title értéke nem UTF-8 karakterkódolással van megadva a %s fotónál: %s", $photoOwnId, $photoData['title']));
+            }
+        }
+
 
         unset($photoData['ownId']);
         unset($photoData['location']);
@@ -675,6 +684,8 @@ class ApiClient
     {
         isset($photo1['labelId']) ?: $photo1['labelId'] = null;
         isset($photo2['labelId']) ?: $photo2['labelId'] = null;
+        isset($photo1['title']) ?: $photo1['title'] = null;
+        isset($photo2['title']) ?: $photo2['title'] = null;
         if (
             $photo1['title'] != $photo2['title'] ||
             $photo1['labelId'] != $photo2['labelId']
@@ -736,6 +747,8 @@ class ApiClient
      */
     private function syncPhotosPutOrder($adOwnId, array $photosByOwnId)
     {
+        isset($a['order']) ?: $a['order'] = null;
+        isset($b['order']) ?: $b['order'] = null;
         usort($photosByOwnId, function ($a, $b) {
             if ($a['order'] == $b['order']) {
                 return 0;
