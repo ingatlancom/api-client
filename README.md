@@ -96,6 +96,8 @@ Ha valamely paraméter hiányzik vagy hibás, az API visszajelzi a hibát a [JSe
 
 **A megjegyzés (description) mező** lehet teljesen üres, vagy tartalmazhat 3 karakternél hosszabb leírást.
 
+**A fűtés (heatingType) mező** egy maximum 2 elemű tömb amibe az értékkészlet szerinti fűtéseket lehet megadni. Default értéke 0 és ha 2-nél több elem érkezik benne, akkor az első kettőt menti el. 
+
 **Az alábbi mezők nem módosíthatók:**
 
 * listingType
