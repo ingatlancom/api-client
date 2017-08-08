@@ -86,8 +86,6 @@ Az API két adattípussal dolgozik, ezek a hirdetés és a fotó.
 
 Minden hirdetésnek rendelkeznie kell egy (partnerenként egyedi) azonosítóval (ownId), csak így tölthető be az ingatlan.com rendszerébe. Ez egy maximum 15 karakter hosszúságú string, amely lehetőség szerint megfelel az alábbi reguláris kifejezésnek: /^[0-9A-Za-z-_]{1,15}$/  
 
-Mivel az azonosító szerepelni fog az URL-ben is, javasoljuk, hogy ne tartalmazzon egyéb, speciális karaktereket.
-
 A hirdetés paramétereinek listája és magyarázata itt tekinthető meg: [https://api.ingatlan.com/v1/doc/fields](https://api.ingatlan.com/v1/doc/fields)
 
 A hirdetés paramétereinél értelemszerűen a kötelező mezők kötelezően kitöltendőek a felsorolt értékkészletből. Javasoljuk, hogy az opcionális mezők is kitöltve érkezzenek.** A hibás vagy hiányos paraméterekkel érkező hirdetések nem kerülnek feltöltésre. 
@@ -117,6 +115,8 @@ Amennyiben ezekbe nem megfelelő adat került, a hirdetés törlés után új sa
 * agenciesAccepted
 
 * price_type
+
+* price
 
 * propertyType
 
