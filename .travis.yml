@@ -16,4 +16,4 @@ before_script:
   - ./.before_script.sh
 
 script:
-  - phpunit --verbose
+  - vendor/bin/phpunit --verbose
