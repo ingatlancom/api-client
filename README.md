@@ -17,7 +17,7 @@ A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéss
 
 API URL: [https://api.ingatlan.com](https://api.ingatlan.com/)
 
-Az API szabványos [REST](https://hu.wikipedia.org/wiki/REST) konvenciókat követ, az adatok [JSON](http://json.org/) formátumban kerülnek átadásra. A JSON válaszok a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumot követik.
+Az API szabványos [REST](https://hu.wikipedia.org/wiki/REST) konvenciókat követ és az adatokat [JSON](http://json.org/) formátumban kell beküldeni. A JSON válaszok a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumot követik.
 
 Az azonosításra [JSON Web Token](http://jwt.io/) technológiát alkalmaz. Az API login token érvényessége 1 óra.
 
