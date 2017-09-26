@@ -150,7 +150,7 @@ Az Automata Betöltés beüzemelése előtt az ingatlan.com felületén létreho
 
 Minden fotónak rendelkeznie kell egy (hirdetésenként egyedi) azonosítóval, csak így tölthető be az ingatlan.com rendszerébe. Ez egy maximum 32 karakter hosszú string, amely lehetőség szerint megfelel az alábbi reguláris kifejezésnek: /^[0-9A-Za-z-_]{1,32}$/
 
-A fotó tömb kulcsai:
+A fotó tömb kulcsai kép feltöltéskor:
 
 * ownId: csak válaszban, a kép sajátId-ja
 
@@ -158,13 +158,17 @@ A fotó tömb kulcsai:
 
 * labelId: a képfelirat azonosítója, opcionális. A [lehetséges képfeliratok ebben az állományban találhatók](https://github.com/ingatlancom/api-client/blob/master/lib/ApiClient/Enum/PhotoLabelEnum.php).
 
-* md5Hash: csak válaszban, a feltöltött, átméretezett kép md5 hash értéke, segítségével ellenőrizni tudjuk, hogy a kliensnek a későbbi feltöltésekkor szükséges-e újra küldenie a képet
-
 * order: sorrend érték, integer
 
 * imageData: csak kérésben, a kép fájl tartalma, base64-es kódolásban
 
 Amennyiben az ügyfél által megadott kép nem elérhető hibaüzenetet adunk vissza. Az ingatlan.com rendszerébe 20 képet lehet feltölteni, ez vonatkozik az Automata Betöltésre is. 
+
+Képek lekérdezésekor a következő kulcsok szerepelnek még a tömbben:
+
+* md5Hash: a feltöltött, átméretezett kép MD5 hash értéke, segítségével ellenőrizni tudjuk, hogy a kliensnek a későbbi feltöltésekkor szükséges-e újra küldenie a képet
+
+* hasForbiddenWatermarkOrLogo: a kép megfelel-e az ÁSZF-ben leírtaknak (nem tartalmazhat logót, vízjelet illetve feliratot (az alaprajzokon szereplő jelölések kivételével)). Amennyiben itt true értéket talál, az azt jelenti, hogy 2017. november 15. után az adott képet nem jelenítjük meg a keresők számára. Ilyen esetben kérjük, töltse fel a kép eredeti, nem manipulált változatát. Amennyiben az eredeti képnél is true érték szerepel, kérjük lépjen be az [adminisztrációs felületünkön](https://admin.ingatlan.com/belepes) és a hirdetés szerkesztése oldalon a szabálytalannak jelölt fotón szereplő zászló ikonnal jelentse be a hibás működést. Ezután moderátoraink fogják ellenőrizni és elbírálni a képet.
 
 ## Referensek kezelése
 
