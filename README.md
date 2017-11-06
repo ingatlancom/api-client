@@ -11,7 +11,7 @@ A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéss
 
 * Az Automata Betöltés nem kezeli a liciteket, kiemeléseket, referenseket. Ezt továbbra is az adminisztrációs felületen végezheti el a referens.
 
-* Automata Betöltéssel nem lehet "új építésű" hirdetéseket feladni. Amennyiben a “conditionType=3”-al érkezik hirdetés azt “conditionType=4” állapotba mentjük, és jelezzük, hogy lépjen be a felületre, és ott manuálisan állítsa be, hogy ezek közül melyikeket szeretné új építésű állapotba tenni (csak annyit fog tudni átállítani, amennyi új ép. kiegészítőt vett). Ha egyszer beállította egy hirdetésnél az állapotot (és még van aktív kerete), akkor annál a hirdetésnél újrabetöltéskor nem írjuk felül az állapotot.
+* Automata Betöltéssel nem lehet "új építésű" hirdetéseket feladni. Amennyiben a “conditionType=3”-al érkezik hirdetés azt “conditionType=0” állapotba mentjük, és jelezzük, hogy lépjen be a felületre, és ott manuálisan állítsa be, hogy ezek közül melyikeket szeretné új építésű állapotba tenni (csak annyit fog tudni átállítani, amennyi új ép. kiegészítőt vett). Ha egyszer beállította egy hirdetésnél az állapotot (és még van aktív kerete), akkor annál a hirdetésnél újrabetöltéskor nem írjuk felül az állapotot.
 
 ## Technikai információk
 
