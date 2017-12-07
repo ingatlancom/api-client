@@ -5,6 +5,11 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [3.2.1] - 2017-12-07
+
+### Javítva
+- a függőségeknek csak az alsó verzióit kötjük meg
+
 ## [3.2.0] - 2017-05-17
 
 ### Bekerült
