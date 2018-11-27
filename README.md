@@ -269,28 +269,6 @@ $apiClient->deleteAd('x149395');
 ```
 (Fizikailag a hirdetés nem törlődik, csak a státusza fog "törlöm, de megtartom" státuszra váltani.)
 
-### Hirdetés elrejtése
-
-Az `isHiddenOnIcom` nevű paraméterrel állítható, hogy a hirdetés megjelenjen-e az ingatlan.com-on. Fontos, hogy ez az opció nem törli a hirdetést, és a státuszát sem módosítja, egyszerűen csak nem lesz látható a keresők számára.
-
-Az x149395 saját id-jú hirdetés elrejtéséhez állítsuk a mező értékét `1`-re, ahogy [az a paraméterek listájában is látható](https://api.ingatlan.com/v1/doc/fields):
-
-
-```php
-$ad = [
-    'ownId'           => 'x149395',
-    'listingType'     => 1,
-    'propertyType'    => 1,
-    'propertySubtype' => 2,
-    'priceHuf'        => 17500000,
-    'isHiddenOnIcom'  => 1
-     ...
-];
-$apiClient->putAd($ad);
-```
-
-(A hirdetés megjelenítéséhez pedig értelemszerűen `0`-s értékkel kell ezt a paramétert beküldeni.)
-
 ### Iroda összes hirdetés azonosítójának lekérdezése
 
 ```php
