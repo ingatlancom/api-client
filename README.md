@@ -57,26 +57,6 @@ Korszerű PHP kódoláshoz kiegészítő információk:
 
 * [http://hu.phptherightway.com/](http://hu.phptherightway.com/)
 
-## Teszt környezet
-
-Az éles környezettől független tesztrendszer, amelyhez a hozzáférést szintén az ügyfélszolgálati kapcsolattartótól kell kérni. Az authentikáció kizárólag "https" protokollon keresztül elérhető. Ide csak bizonyos adatokat szinkronizálunk az éles rendszerből, pl. a referensek és a projektek adatait a tesztkörnyezet nem tartalmazza. A teszt környezet egy sandbox, nem áll módunkban az éles infrastruktúra egészét klónozni és karbantartani. Az ide feltöltött hirdetések a rendszeres adatbázis-karbantartások során törlésre kerülhetnek. Amennyiben egy hirdetés betöltése sikeres, azt az API válaszban visszaadjuk. A teszt és az éles környezet egyszerre nem használható. 
-
-Teszt URL: [https://apitest.ingatlan.com](https://apitest.ingatlan.com/)
-
-## A fejlesztés menete
-
-1. Teszthozzáférés biztosítása
-
-2. [https://github.com/ingatlancom/api-client](https://github.com/ingatlancom/api-client) repository feliratkozás 
-(ez azért fontos, mert minden egyes frissítésről, javításról automatikusan értesülnek a felhasználók.) 
-
-3. Ügyfél oldali fejlesztés
-
-4. Ügyfél oldali tesztelés az apitest.ingatlan.com sandboxban
-
-5. Amennyiben késznek ítéljük a fejlesztést (nem az ingatlan.com ítéli meg), éles hozzáférés kérése
-
-6. Az apitest.ingatlan.com url cseréje a kódban api.ingatlan.com-ra.
 
 ## Adattípusok
 
@@ -223,7 +203,7 @@ $pool = new Stash\Pool($driver);
 2. Példányosítsuk az API klienst:
 
 ```php
-$apiUrl = 'https://apitest.ingatlan.com';
+$apiUrl = 'https://api.ingatlan.com';
 $apiClient = new \IngatlanCom\ApiClient\ApiClient($apiUrl, $pool);
 ```
 
