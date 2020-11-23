@@ -122,10 +122,6 @@ A városok és városrészek listája megtekinthető [az alábbi tömörített �
 
 Az Automata Betöltés használatakor, a fentiekben jelzett tömörített állományokban található elhelyezkedési adatokat fogadjuk el. Amennyiben pl. "nem megfelelő városrész" hibát tapasztalunk, a fenti állományban lévőre kell azt az ügyfél oldalán javítani. Amennyiben az ingatlan.com térképadatbázisában hibát talál, kérjük jelezze felénk. 
 
-### Megfeleltető funkció
-
-Az Automata Betöltés beüzemelése előtt az ingatlan.com felületén létrehozott hirdetések egy, a betöltésbe épített logika alapján összepárosodnak a betöltés során abban az esetben, ha tökéletesen egyező paraméterekkel töltődnek be. Azok a hirdetések, amelyek nem megfeleltethetők, törlésre kerülhetnek.
-
 ### Fotó
 
 Minden fotónak rendelkeznie kell egy (hirdetésenként egyedi) azonosítóval, csak így tölthető be az ingatlan.com rendszerébe. Ez egy maximum 32 karakter hosszú string, amely lehetőség szerint megfelel az alábbi reguláris kifejezésnek: /^[0-9A-Za-z-_]{1,32}$/
