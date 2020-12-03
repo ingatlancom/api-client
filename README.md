@@ -55,7 +55,7 @@ Korszerű PHP kódoláshoz kiegészítő információk:
 
 * [http://www.php-fig.org/psr/](http://www.php-fig.org/psr/)
 
-* [http://hu.phptherightway.com/](http://hu.phptherightway.com/)
+* [https://phptherightway.com/](https://phptherightway.com/)
 
 
 ## Adattípusok
@@ -72,7 +72,7 @@ A hirdetés paramétereinél értelemszerűen a kötelező mezők kötelezően k
 **
 Ha valamely paraméter hiányzik vagy hibás, az API visszajelzi a hibát a [JSend](https://labs.omniti.com/labs/jsend) ajánlás szerinti formátumban. A lehetséges hibaüzenetek listája is a fenti dokumentációban látható.
 
-**A megjegyzés (description) mező** lehet teljesen üres, vagy tartalmazhat 3 karakternél hosszabb leírást.
+**A megjegyzés (description) mező** kötelező, legalább 5 és legfeljebb 10000 karakter hosszú lehet.
 
 **A fűtés (heatingType) mező** egy maximum 2 elemű tömb amibe az értékkészlet szerinti fűtéseket lehet megadni. Default értéke 0 és ha 2-nél több elem érkezik benne, akkor az első kettőt menti el. A fűtés kizárólag lakás, ház, nyaraló és intézmény típusoknál adható meg.
 
@@ -87,30 +87,6 @@ Ha valamely paraméter hiányzik vagy hibás, az API visszajelzi a hibát a [JSe
 * projectId
 
 Amennyiben ezekbe nem megfelelő adat került, a hirdetés törlés után új sajatId-vel adható fel újra.
-
-**Kötelező mezők:**
-
-* listingType
-
-* agenciesAccepted
-
-* price_type
-
-* price
-
-* propertyType
-
-* propertySubtype
-
-* AreaSize
-
-* LotSize
-
-* city
-
-* ownId
-
-* roomCount
 
 #### Intelligens API
 
@@ -138,7 +114,7 @@ A fotó tömb kulcsai kép feltöltéskor:
 
 * imageData: csak kérésben, a kép fájl tartalma, base64-es kódolásban
 
-Amennyiben az ügyfél által megadott kép nem elérhető hibaüzenetet adunk vissza. Az ingatlan.com rendszerébe 20 képet lehet feltölteni, ez vonatkozik az Automata Betöltésre is. 
+Amennyiben az ügyfél által megadott kép nem elérhető hibaüzenetet adunk vissza. Az ingatlan.com rendszerébe 30 képet lehet feltölteni, ez vonatkozik az Automata Betöltésre is. 
 
 Képek lekérdezésekor a következő kulcsok szerepelnek még a tömbben:
 
@@ -215,7 +191,7 @@ Az alább következő műveletek csak a bejelentkezés meghívása után végezh
 
 ### Hirdetés feltöltése
 
-Az $ad tömbben adja meg a hirdetés paramétereit. (A beküldhető mezők pontos leírását az [alábbi linken](https://api.ingatlan.com/v1/doc/fields) tekintheti meg.)
+Az $ad tömbben adja meg a hirdetés paramétereit. (A beküldhető mezők pontos leírását az [alábbi linken](https://api.ingatlan.com/v1/doc/parameters) tekintheti meg.)
 
 ```php
 $ad = [
@@ -321,7 +297,7 @@ $photoData = [
     'order'    => 3,
     'title'    => 'Képfelirat 3',
     'labelId'  => null,
-    'imageData => file_get_contents('kepem.jpg')
+    'imageData' => file_get_contents('kepem.jpg')
 ];
 $ids = $apiClient->putPhoto('x149395', $photoData);
 ```
