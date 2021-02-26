@@ -2,23 +2,31 @@
 
 use GuzzleHttp\Promise\PromiseInterface;
 use IngatlanCom\ApiClient\ApiClient;
+use IngatlanCom\ApiClient\Exception\JSendFailException;
+use IngatlanCom\ApiClient\Exception\NotAuthenticatedException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * ApiClient tesztek
  */
-class ApiClientTest extends \PHPUnit_Framework_TestCase
+class ApiClientTest extends TestCase
 {
     /**
      * @param array $mocks
      * @return ApiClient
      */
-    public function getClient(array $mocks)
+    public function getClient(array $mocks): ApiClient
     {
-        return new ApiClient('/', null, new ClientFactoryMockService('responses', $mocks));
+        return new ApiClient(
+            '/',
+            null,
+            new ClientFactoryMockService('responses', $mocks)
+        );
     }
 
-    public function testLoginSuccess()
+    public function testLoginSuccess(): void
     {
+        self::expectNotToPerformAssertions();
         $client = $this->getClient(
             [
                 ['statusCode' => 200, 'fileName' => 'loginSuccess'],
@@ -27,11 +35,9 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         $client->login('lolka', 'bolka');
     }
 
-    /**
-     * @expectedException IngatlanCom\ApiClient\Exception\NotAuthenticatedException
-     */
-    public function testLoginFail()
+    public function testLoginFail(): void
     {
+        self::expectException(NotAuthenticatedException::class);
         $client = $this->getClient(
             [
                 ['statusCode' => 401, 'fileName' => 'loginFail'],
@@ -40,8 +46,9 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         $client->login('lolka', 'bolka');
     }
 
-    public function testPutAdSuccess()
+    public function testPutAdSuccess(): void
     {
+        self::expectNotToPerformAssertions();
         $client = $this->getClient(
             [
                 ['statusCode' => 200, 'fileName' => 'loginSuccess'],
@@ -52,7 +59,7 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
         $client->putAd(array('ownId' => 'i12345'));
     }
 
-    public function testPutAdFail()
+    public function testPutAdFail(): void
     {
         $client = $this->getClient(
             [
@@ -64,12 +71,12 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
 
         try {
             $client->putAd(['ownId' => 'i12345']);
-        } catch (\IngatlanCom\ApiClient\Exception\JSendFailException $e) {
-            $this->assertArrayHasKey('listingType', $e->getJSendResponse()->getData());
+        } catch (JSendFailException $e) {
+            self::assertArrayHasKey('listingType', $e->getJSendResponse()->getData());
         }
     }
 
-    public function testSyncAds()
+    public function testSyncAds(): void
     {
         $client = $this->getClient(
             [
@@ -83,10 +90,10 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
 
         $deleted = $client->syncAds(['ad2', 'ad4']);
 
-        $this->assertEquals(['ad1', 'ad3'], array_values($deleted));
+        self::assertEquals(['ad1', 'ad3'], array_values($deleted));
     }
 
-    public function testPutPhotosMultiSuccess()
+    public function testPutPhotosMultiSuccess(): void
     {
         $client = $this->getClient(
             [
@@ -99,21 +106,21 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
 
         $result = $client->putPhotosMulti(
             'i12345',
-            array(
-                'p1' => array(
-                    'ownId' => 'p1',
-                ),
-                'p2' => array(
-                    'ownId' => 'p2',
-                ),
-            )
+            [
+                'p1' => [
+                    'ownId' => 'p1'
+                ],
+                'p2' => [
+                    'ownId' => 'p2'
+                ]
+            ]
         );
 
-        $this->assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
-        $this->assertEquals(PromiseInterface::FULFILLED, $result['p2']['state']);
+        self::assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
+        self::assertEquals(PromiseInterface::FULFILLED, $result['p2']['state']);
     }
 
-    public function testPutPhotosMultiFail()
+    public function testPutPhotosMultiFail(): void
     {
         $client = $this->getClient(
             [
@@ -126,21 +133,21 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
 
         $result = $client->putPhotosMulti(
             'i12345',
-            array(
-                'p1' => array(
-                    'ownId' => 'p1',
-                ),
-                'p2' => array(
-                    'ownId' => 'p2',
-                ),
-            )
+            [
+                'p1' => [
+                    'ownId' => 'p1'
+                ],
+                'p2' => [
+                    'ownId' => 'p2'
+                ]
+            ]
         );
 
-        $this->assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
-        $this->assertEquals(PromiseInterface::REJECTED, $result['p2']['state']);
+        self::assertEquals(PromiseInterface::FULFILLED, $result['p1']['state']);
+        self::assertEquals(PromiseInterface::REJECTED, $result['p2']['state']);
     }
 
-    public function testSyncPhotos()
+    public function testSyncPhotos(): void
     {
         $client = $this->getClient(
             [
@@ -156,43 +163,43 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
 
         $result = $client->syncPhotos(
             'ad1',
-            array(
-                array(
+            [
+                [
                     'ownId'   => 'p2',
                     'title'   => 'photo2',
                     'labelId' => null,
-                    'order'   => 1,
-                ),
-                array(
+                    'order'   => 1
+                ],
+                [
                     'ownId'   => 'p3',
                     'title'   => 'photo3',
                     'labelId' => null,
-                    'order'   => 2,
-                ),
-                array(
+                    'order'   => 2
+                ],
+                [
                     'ownId'    => 'p5',
                     'title'    => 'photo5',
                     'labelId'  => null,
                     'location' => __DIR__ . '/mock/photos/1.jpg',
-                    'order'    => 3,
-                ),
-                array(
+                    'order'    => 3
+                ],
+                [
                     'ownId'    => 'p6',
                     'title'    => 'photo6',
                     'labelId'  => null,
                     'location' => __DIR__ . '/mock/photos/2.jpg',
-                    'order'    => 4,
-                ),
-            )
+                    'order'    => 4
+                ]
+            ]
         );
 
         //photos/2.jpg nincs
-        $this->assertCount(0, $result->getDeletePhotoErrors());
-        $this->assertCount(1, $result->getFetchPhotoErrors());
-        $this->assertCount(0, $result->getPutPhotoErrors());
+        self::assertCount(0, $result->getDeletePhotoErrors());
+        self::assertCount(1, $result->getFetchPhotoErrors());
+        self::assertCount(0, $result->getPutPhotoErrors());
     }
 
-    public function testCheckApiStatus()
+    public function testCheckApiStatus(): void
     {
         $client = $this->getClient(
             [
@@ -200,6 +207,6 @@ class ApiClientTest extends \PHPUnit_Framework_TestCase
             ]
         );
         $isOk = $client->checkApiStatus();
-        $this->assertTrue($isOk);
+        self::assertTrue($isOk);
     }
 }

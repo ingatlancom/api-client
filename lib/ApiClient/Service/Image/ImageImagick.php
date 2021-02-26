@@ -2,27 +2,20 @@
 
 namespace IngatlanCom\ApiClient\Service\Image;
 
+use Exception;
 use Imagick;
 
 /**
- * Class ImageImagick
- *
  * ImageMagick kép wrapper
- *
- * @package IngatlanCom\ApiClient\Service\Image
  */
 class ImageImagick implements ImageInterface
 {
     /**
-     * ImageMagick image
-     *
      * @var Imagick
      */
     protected $img;
 
     /**
-     * Konstruktor
-     *
      * @param Imagick $img ImageMagick image
      */
     public function __construct(Imagick $img)
@@ -36,12 +29,11 @@ class ImageImagick implements ImageInterface
     public static function createFromBytes($imageBytes)
     {
         try {
-            $img = new \Imagick();
+            $img = new Imagick();
             $img->readImageBlob($imageBytes);
-        } catch (\Exception $we) {
+        } catch (Exception $we) {
             throw new ImageException('Hibás kép!');
         }
-
 
         return new static($img);
     }
@@ -78,7 +70,7 @@ class ImageImagick implements ImageInterface
     public function createResizedMaximizedImage($maxWidth, $maxHeight)
     {
         $img = clone $this->img;
-        $img->resizeImage($maxWidth, $maxHeight, \Imagick::FILTER_LANCZOS, 1, true);
+        $img->resizeImage($maxWidth, $maxHeight, Imagick::FILTER_LANCZOS, 1, true);
 
         return new static($img);
     }

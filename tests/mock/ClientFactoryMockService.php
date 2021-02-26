@@ -19,17 +19,23 @@ class ClientFactoryMockService extends ClientFactoryService
     private $handler;
 
     /**
-     * ClientFactoryMockService constructor.
-     * @param       $mockDirectory
+     * @param string $mockDirectory
      * @param array $mocks
      */
-    public function __construct($mockDirectory, array $mocks)
+    public function __construct(string $mockDirectory, array $mocks)
     {
         $responses = [];
         foreach ($mocks as $mockFile) {
-            $body = isset($mockFile['fileName'])
-                ? file_get_contents(__DIR__ . "/$mockDirectory/" . $mockFile['fileName'])
-                : null;
+            $body = null;
+            if (
+                isset($mockFile['fileName']) &&
+                file_exists(__DIR__ . "/$mockDirectory/" . $mockFile['fileName'])
+            ) {
+                $content = file_get_contents(__DIR__ . "/$mockDirectory/" . $mockFile['fileName']);
+                if ($content !== false) {
+                    $body = $content;
+                }
+            }
 
             $responses[] = new Response($mockFile['statusCode'], [], $body);
         }
@@ -40,12 +46,12 @@ class ClientFactoryMockService extends ClientFactoryService
 
     /**
      * @param string $baseUrl
-     * @param null   $config
+     * @param array|null $config
      * @return Client
      */
-    public function getClient($baseUrl = '', $config = null)
+    public function getClient(string $baseUrl = '', array $config = null): Client
     {
-        if (!$this->client) {
+        if (!isset($this->client)) {
             $config['handler'] = $this->handler;
             $this->client = parent::getClient($baseUrl, $config);
         }

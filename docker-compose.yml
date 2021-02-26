@@ -1,0 +1,33 @@
+version: '3.7'
+
+x-php-common:
+  &php-common
+  working_dir: /app
+  tty: true
+  stdin_open: true
+  environment:
+    - HOME
+    - COMPOSER_HOME=$HOME/.composer
+    - SSH_AUTH_SOCK=/ssh-auth.sock
+  volumes:
+    - $SSH_AUTH_SOCK:/ssh-auth.sock
+    - $HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts
+    - $HOME/.composer:$HOME/.composer
+    - /etc/passwd:/etc/passwd:ro
+    - /etc/group:/etc/group:ro
+    - $PWD:/app
+
+services:
+  php:
+    <<: *php-common
+    build:
+      context: .docker/php/
+      args:
+        PHP_VERSION: '7.4-cli-alpine'
+
+  php8:
+    <<: *php-common
+    build:
+      context: .docker/php/
+      args:
+        PHP_VERSION: '8.0-cli-alpine'

@@ -3,11 +3,7 @@
 namespace IngatlanCom\ApiClient\Service\Image;
 
 /**
- * Interface ImageInterface
- *
  * Kép absztrakció interface
- *
- * @package IngatlanCom\ApiClient\Service\Image
  */
 interface ImageInterface
 {

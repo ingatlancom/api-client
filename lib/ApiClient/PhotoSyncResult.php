@@ -7,12 +7,12 @@ namespace IngatlanCom\ApiClient;
 class PhotoSyncResult
 {
     /**
-     * @var $photos
+     * @var array $photos
      */
     private $photos = [];
 
     /**
-     * @var $errors
+     * @var array $errors
      */
     private $errors = [];
 
@@ -41,7 +41,7 @@ class PhotoSyncResult
      */
     private function getErrorsFromArray($arrayName)
     {
-        return isset($this->errors[$arrayName]) ?  $this->errors[$arrayName] : [];
+        return $this->errors[$arrayName] ?? [];
     }
 
     /**

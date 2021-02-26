@@ -1,8 +1,11 @@
 <?php
 namespace IngatlanCom\ApiClient\Service;
 
+use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Promise\Each;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use IngatlanCom\ApiClient\Service\Image\ImageException;
@@ -13,8 +16,6 @@ use Psr\Http\Message\RequestInterface;
 
 /**
  * Képátméretezés közös részei, pl. file műveletek, file letöltés
- *
- * @package IngatlanCom\ApiClient\Service
  */
 class PhotoResizeService
 {
@@ -67,9 +68,9 @@ class PhotoResizeService
      *
      * @param string $path kép elérési útvonal
      * @return string kép byteok
-     * @throws \Exception
+     * @throws Exception|GuzzleException
      */
-    public function getResizedPhotoData($path)
+    public function getResizedPhotoData(string $path)
     {
         if ('http' == substr(strtolower($path), 0, 4)) {
             $response = $this->client->request('GET', $path);
@@ -81,9 +82,7 @@ class PhotoResizeService
             }
         }
 
-        $fileData = $this->resizePhoto($contents);
-
-        return $fileData;
+        return $this->resizePhoto($contents);
     }
 
     /**
@@ -93,10 +92,10 @@ class PhotoResizeService
      * @param bool  $paralellDownload párhuzamos fotóletöltés az iroda szerveréről
      * @return array fotó byte-ok|Exception-ok fotó saját azonosító szerint
      */
-    public function getResizedPhotosData(array $photosByOwnId, $paralellDownload = false)
+    public function getResizedPhotosData(array $photosByOwnId, bool $paralellDownload = false)
     {
-        $results = array();
-        $requests = array();
+        $results = [];
+        $requests = [];
 
         foreach ($photosByOwnId as $ownId => $photo) {
             $path = $photo['location'];
@@ -106,7 +105,7 @@ class PhotoResizeService
             } else {
                 try {
                     $results[$ownId] = $this->getResizedPhotoData($path);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $results[$ownId] = $e;
                 }
             }
@@ -123,12 +122,12 @@ class PhotoResizeService
      * @param RequestInterface[] $requests
      * @return array fotó byte-ok|Exception-ok fotó saját azonosító szerint
      */
-    private function getResizedPhotosDataByRequests($requests)
+    private function getResizedPhotosDataByRequests(array $requests)
     {
         $results = [];
         $promises = [];
 
-        if (count($requests)) {
+        if (count($requests) > 0) {
             try {
                 foreach ($requests as $key => $request) {
                     $promises[$key] = $this->client->sendAsync($request);
@@ -136,12 +135,12 @@ class PhotoResizeService
             } catch (TransferException $e) {
             }
 
-            \GuzzleHttp\Promise\each(
+            Each::of(
                 $promises,
-                function ($value, $idx) use (&$results) {
+                function ($value, $idx) use (&$results): void {
                     $results[$idx] = ['state' => PromiseInterface::FULFILLED, 'value' => $value];
                 },
-                function ($reason, $idx) use (&$results) {
+                function ($reason, $idx) use (&$results): void {
                     $results[$idx] = ['state' => PromiseInterface::REJECTED, 'value' => $reason];
                 }
             )->wait();
@@ -153,7 +152,7 @@ class PhotoResizeService
             } else {
                 try {
                     $results[$ownId] = $this->resizePhoto($response['value']->getBody());
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $results[$ownId] = $e;
                 }
             }
@@ -166,10 +165,10 @@ class PhotoResizeService
      * Szürkeárnyalatos-e a kép (pl. alaprajz "fekete-fehér-e"?)
      *
      * @param ImageInterface $img
-     * @param float          $tolerancePercentage default 95 (%)
+     * @param float $tolerancePercentage default 95 (%)
      * @return boolean
      */
-    private function isGrayScale(ImageInterface $img, $tolerancePercentage = 95.0)
+    private function isGrayScale(ImageInterface $img, float $tolerancePercentage = 95.0)
     {
         $width = $img->getWidth();
         $height = $img->getHeight();
@@ -215,10 +214,11 @@ class PhotoResizeService
     /**
      * Kép betöltése
      *
-     * @param $imageData
-     * @return \IngatlanCom\ApiClient\Service\Image\ImageInterface
+     * @param string $imageData
+     * @return ImageInterface
+     * @throws ImageException
      */
-    private function loadImage($imageData)
+    private function loadImage(string $imageData)
     {
         if (static::LIB_IMAGICK == $this->imageLibrary) {
             $img = ImageImagick::createFromBytes($imageData);
@@ -236,8 +236,9 @@ class PhotoResizeService
      *
      * @param string $imageData forrás kép byteok
      * @return string átméretezett kép byteok
+     * @throws ImageException
      */
-    private function resizePhoto($imageData)
+    private function resizePhoto(string $imageData)
     {
         $img = $this->loadImage($imageData);
         $width = $img->getWidth();

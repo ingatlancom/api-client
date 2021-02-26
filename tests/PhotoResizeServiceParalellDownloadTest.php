@@ -1,12 +1,16 @@
 <?php
+
+use GuzzleHttp\Exception\ClientException;
+use IngatlanCom\ApiClient\Service\Image\ImageException;
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Parhuzamos kepletoltes teszt
  */
-class PhotoResizeServiceParalellDownloadTest extends \PHPUnit_Framework_TestCase
+class PhotoResizeServiceParalellDownloadTest extends TestCase
 {
-    public function testGetResizedPhotos()
+    public function testGetResizedPhotos(): void
     {
         $service = $this->getPhotoResizeService(
             [
@@ -16,30 +20,30 @@ class PhotoResizeServiceParalellDownloadTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $photos = array(
-            1 => array('location' => 'http://1.jpg'),
-            2 => array('location' => 'http://toosmall.png'),
-            3 => array('location' => 'http://notfound.jpg'),
-            4 => array('location' => __DIR__ . '/mock/photos/1.jpg'),
-        );
+        $photos = [
+            1 => ['location' => 'http://1.jpg'],
+            2 => ['location' => 'http://toosmall.png'],
+            3 => ['location' => 'http://notfound.jpg'],
+            4 => ['location' => __DIR__ . '/mock/photos/1.jpg']
+        ];
 
         $res = $service->getResizedPhotosData($photos, true);
 
-        $this->assertTrue(is_string($res[1]));
-        $this->assertTrue(is_string($res[4]));
-        $this->assertTrue($res[2] instanceof \IngatlanCom\ApiClient\Service\Image\ImageException);
-        $this->assertTrue($res[3] instanceof \GuzzleHttp\Exception\ClientException);
+        self::assertTrue(is_string($res[1]));
+        self::assertTrue(is_string($res[4]));
+        self::assertTrue($res[2] instanceof ImageException);
+        self::assertTrue($res[3] instanceof ClientException);
 
         $sizes1 = getimagesizefromstring($res[1]);
         $sizes4 = getimagesizefromstring($res[4]);
-        $this->assertEquals($sizes1, $sizes4);
+        self::assertEquals($sizes1, $sizes4);
     }
 
     /**
      * @param array $mocks
      * @return PhotoResizeService
      */
-    private function getPhotoResizeService(array $mocks)
+    private function getPhotoResizeService(array $mocks): PhotoResizeService
     {
         return new PhotoResizeService(null, new ClientFactoryMockService('photos', $mocks));
     }

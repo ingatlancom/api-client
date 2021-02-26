@@ -4,15 +4,20 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": ">=5.5",
+        "php": ">=7.4",
+        "ext-json": "*",
         "guzzlehttp/guzzle": "^6.2",
         "nannehuiges/jsend": "^2.1",
         "tedivm/stash": "^0.14"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8",
+        "phpunit/phpunit": "^9.5",
         "phpmd/phpmd": "^2.6",
-        "squizlabs/php_codesniffer": "^2.9"
+        "friendsofphp/php-cs-fixer": "^2.18",
+        "phpstan/phpstan": "^0.12",
+        "phpstan/phpstan-phpunit": "^0.12",
+        "phpstan/phpstan-strict-rules": "^0.12",
+        "vimeo/psalm": "^4.4"
     },
     "scripts": {
         "ingatlancom-scripts": [
@@ -23,6 +28,20 @@
         ],
         "pre-update-cmd": [
             "@ingatlancom-scripts"
+        ],
+        "ut": [
+            "@php vendor/bin/phpunit"
+        ],
+        "sa": [
+            "@php vendor/bin/phpstan analyse --no-progress --ansi",
+            "@php vendor/bin/psalm --show-info=true"
+        ],
+        "cs": [
+            "@php vendor/bin/php-cs-fixer fix --diff --ansi --dry-run"
+        ],
+        "sc": [
+            "[ -e build/bin/local-php-security-checker ] || curl -sL https://github.com/fabpot/local-php-security-checker/releases/download/v1.0.0/local-php-security-checker_1.0.0_linux_amd64 -o build/bin/local-php-security-checker && chmod +x build/bin/local-php-security-checker",
+            "./build/bin/local-php-security-checker --format=ansi"
         ]
     },
     "config": {

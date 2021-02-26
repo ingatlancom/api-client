@@ -1,11 +1,12 @@
 <?php
 
 use IngatlanCom\ApiClient\Service\PhotoResizeService;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Képátméretezés tesztek
  */
-abstract class PhotoResizeServiceTestAbstract extends \PHPUnit_Framework_TestCase
+abstract class PhotoResizeServiceTestAbstract extends TestCase
 {
     /**
      * @var PhotoResizeService
@@ -17,16 +18,16 @@ abstract class PhotoResizeServiceTestAbstract extends \PHPUnit_Framework_TestCas
      */
     protected $imageLibrary = PhotoResizeService::LIB_IMAGICK;
 
-    public function setUp()
+    public function setUp(): void
     {
         if (PhotoResizeService::LIB_IMAGICK == $this->imageLibrary && !extension_loaded('imagick')) {
-            $this->markTestSkipped(
+            self::markTestSkipped(
                 'The imagick extension is not available.'
             );
         }
 
         if (PhotoResizeService::LIB_GD == $this->imageLibrary && !extension_loaded('gd')) {
-            $this->markTestSkipped(
+            self::markTestSkipped(
                 'The gd extension is not available.'
             );
         }
@@ -34,34 +35,32 @@ abstract class PhotoResizeServiceTestAbstract extends \PHPUnit_Framework_TestCas
         $this->service = new PhotoResizeService($this->imageLibrary);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
-        $this->service = null;
+        unset($this->service);
     }
 
-    public function testResize()
+    public function testResize(): void
     {
+        self::expectNotToPerformAssertions();
         $this->service->getResizedPhotoData(__DIR__ . '/mock/photos/1.jpg');
     }
 
-    /**
-     * @expectedException \Exception
-     */
-    public function testResizeTooSmallNotGroundPlan()
+    public function testResizeTooSmallNotGroundPlan(): void
     {
+        self::expectException(Exception::class);
         $this->service->getResizedPhotoData(__DIR__ . '/mock/photos/toosmall.png');
     }
 
-    public function testResizeTooSmall450x450ButGroundPlan()
+    public function testResizeTooSmall450x450ButGroundPlan(): void
     {
+        self::expectNotToPerformAssertions();
         $this->service->getResizedPhotoData(__DIR__ . '/mock/photos/groundplan450.jpg');
     }
 
-    /**
-     * @expectedException \Exception
-     */
-    public function testResizeTooSmall450x450NotGroundPlan()
+    public function testResizeTooSmall450x450NotGroundPlan(): void
     {
+        self::expectException(Exception::class);
         $this->service->getResizedPhotoData(__DIR__ . '/mock/photos/notgroundplan450.jpg');
     }
 }

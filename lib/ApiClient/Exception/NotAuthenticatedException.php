@@ -2,7 +2,8 @@
 
 namespace IngatlanCom\ApiClient\Exception;
 
-class NotAuthenticatedException extends \Exception
-{
+use Exception;
 
+class NotAuthenticatedException extends Exception
+{
 }

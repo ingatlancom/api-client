@@ -1,7 +1,8 @@
 <?php
 namespace IngatlanCom\ApiClient\Exception;
 
-class InvalidValueException extends \Exception
-{
+use Exception;
 
+class InvalidValueException extends Exception
+{
 }

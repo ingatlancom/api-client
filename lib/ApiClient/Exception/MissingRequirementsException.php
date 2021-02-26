@@ -1,7 +1,8 @@
 <?php
 namespace IngatlanCom\ApiClient\Exception;
 
-class MissingRequirementsException extends \RuntimeException
-{
+use RuntimeException;
 
+class MissingRequirementsException extends RuntimeException
+{
 }

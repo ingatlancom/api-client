@@ -1,7 +1,8 @@
 <?php
 namespace IngatlanCom\ApiClient\Exception;
 
-class JWTTokenException extends \Exception
-{
+use Exception;
 
+class JWTTokenException extends Exception
+{
 }

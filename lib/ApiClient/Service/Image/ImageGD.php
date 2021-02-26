@@ -2,12 +2,10 @@
 
 namespace IngatlanCom\ApiClient\Service\Image;
 
+use Exception;
+
 /**
- * Class ImageGD
- *
  * GD kép wrapper
- *
- * @package IngatlanCom\ApiClient\Service\Image
  */
 class ImageGD implements ImageInterface
 {
@@ -35,7 +33,7 @@ class ImageGD implements ImageInterface
     {
         $img = imagecreatefromstring($imageBytes);
         if (false === $img) {
-            throw new \Exception('Hibás kép!');
+            throw new Exception('Hibás kép!');
         }
 
         return new static($img);

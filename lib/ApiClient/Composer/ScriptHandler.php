@@ -10,7 +10,7 @@ class ScriptHandler
      *
      * @throws MissingRequirementsException
      */
-    public static function checkRequirements()
+    public static function checkRequirements(): void
     {
         if (!extension_loaded('imagick') && !extension_loaded('gd')) {
             throw new MissingRequirementsException(

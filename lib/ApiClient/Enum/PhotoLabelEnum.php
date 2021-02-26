@@ -1,6 +1,9 @@
 <?php
 namespace IngatlanCom\ApiClient\Enum;
 
+use ReflectionClass;
+use ReflectionException;
+
 /**
  * A lehetséges fotó címkéket tartalmazó osztály
  */
@@ -75,19 +78,16 @@ class PhotoLabelEnum
     /**
      * @param int $value
      * @return bool
+     * @throws ReflectionException
      */
-    public static function validate($value)
+    public static function validate(int $value): bool
     {
-        if (empty(self::$valueCache)) {
+        if (!isset(self::$valueCache) || count(self::$valueCache) <= 0) {
             $class = get_called_class();
-            $ref = new \ReflectionClass($class);
+            $ref = new ReflectionClass($class);
             self::$valueCache = $ref->getConstants();
         }
 
-        if ($value === null || in_array($value, self::$valueCache)) {
-            return true;
-        } else {
-            return false;
-        }
+        return (!isset($value) || in_array($value, self::$valueCache, true));
     }
 }
