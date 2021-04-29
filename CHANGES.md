@@ -5,6 +5,11 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [3.2.2] - 2021-04-29
+
+### Változott
+- PhotoResizeService osztályban a maximális kép méret 1920 x 1080 legyen
+
 ## [3.2.1] - 2017-12-07
 
 ### Javítva
