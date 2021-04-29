@@ -31,8 +31,8 @@ class PhotoResizeService
     protected $minWidth = 800;
     protected $minHeight = 600;
 
-    protected $maxWidth = 800;
-    protected $maxHeight = 600;
+    protected $maxWidth = 1920;
+    protected $maxHeight = 1080;
 
     /**
      * @var Client
