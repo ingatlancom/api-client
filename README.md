@@ -1,9 +1,11 @@
 ![ingatlan.com](http://ingatlan.com/images/logo.png) 
 # Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client) [![Latest Stable Version](https://poser.pugx.org/ingatlancom/apiclient/v/stable.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![Total Downloads](https://poser.pugx.org/ingatlancom/apiclient/downloads.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![License](https://poser.pugx.org/ingatlancom/apiclient/license.svg)](https://packagist.org/packages/ingatlancom/apiclient)
 
-A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket. Az aktiválási igényt az ügyfélszolgálati kapcsolattartóknál kell jelezni.
+A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) "Automata betöltés" előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket.
 
 **FONTOS:**
+
+**Az "Automata betöltés" terméket jelenleg nem értékesítjük, mielőtt bármilyen fejlesztésbe kezdene ezzel kapcsolatban, kérjük keresse fel ingatlan.com-os ügyfélszolgálati kapcsolattartóját.**
 
 * Automata Betöltés (API) használatával beküldött hibás adatok (amelyek a gépi validáción nem akadnak fent) megjelenéséért a Szolgáltató nem vállal felelősséget. Azok az ügyfelek, akik Automata Betöltéssel töltenek fel hirdetéseket tudomásul veszik, hogy a referensek által az ingatlan.com admin felületen felvitt módosításaik a következő betöltéssel felülírásra kerülnek abban az esetben ha azt a saját rendszerükben nem módosították.
 
