@@ -5,7 +5,7 @@ A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) "Automata bet
 
 **FONTOS:**
 
-*** Az "Automata betöltés" terméket jelenleg nem értékesítjük, mielőtt bármilyen fejlesztésbe kezdene ezzel kapcsolatban, kérjük keresse fel ingatlan.com-os ügyfélszolgálati kapcsolattartóját. ***
+**Az "Automata betöltés" terméket jelenleg nem értékesítjük, mielőtt bármilyen fejlesztésbe kezdene ezzel kapcsolatban, kérjük keresse fel ingatlan.com-os ügyfélszolgálati kapcsolattartóját.**
 
 * Automata Betöltés (API) használatával beküldött hibás adatok (amelyek a gépi validáción nem akadnak fent) megjelenéséért a Szolgáltató nem vállal felelősséget. Azok az ügyfelek, akik Automata Betöltéssel töltenek fel hirdetéseket tudomásul veszik, hogy a referensek által az ingatlan.com admin felületen felvitt módosításaik a következő betöltéssel felülírásra kerülnek abban az esetben ha azt a saját rendszerükben nem módosították.
 
