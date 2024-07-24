@@ -1,7 +1,7 @@
-![ingatlan.com](http://ingatlan.com/images/logo.png) 
+![ingatlan.com](https://ingatlan.com/images/logo.svg) 
 # Automata Betöltés (API) [![Build Status](https://travis-ci.org/ingatlancom/api-client.svg?branch=master)](https://travis-ci.org/ingatlancom/api-client) [![Latest Stable Version](https://poser.pugx.org/ingatlancom/apiclient/v/stable.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![Total Downloads](https://poser.pugx.org/ingatlancom/apiclient/downloads.svg)](https://packagist.org/packages/ingatlancom/apiclient) [![License](https://poser.pugx.org/ingatlancom/apiclient/license.svg)](https://packagist.org/packages/ingatlancom/apiclient)
 
-A rendszer célja az, hogy az [ingatlan.com](http://ingatlan.com/) "Automata betöltés" előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket.
+A rendszer célja az, hogy az [ingatlan.com](https://ingatlan.com/) "Automata betöltés" előfizetéssel rendelkező ingatlanközvetítők a saját nyilvántartó rendszerükből interfészen keresztül tölthessék fel és kezelhessék a hirdetéseiket.
 
 **FONTOS:**
 
