@@ -256,7 +256,8 @@ $photos = [
         'order'    => 1,
         'title'    => 'Képfelirat 1',
         'location' => 'http://lorempixel.com/800/600/city/1/',
-        'labelId'  => PhotoLabelEnum::KORNYEK
+        'labelId'  => PhotoLabelEnum::KORNYEK,
+        'subtype'  => PhotoSubtypeEnum::AI_GENERATED
     ],
     [
         'ownId'    => 'kep2',
@@ -299,6 +300,7 @@ $photoData = [
     'order'    => 3,
     'title'    => 'Képfelirat 3',
     'labelId'  => null,
+    'subtype'  => null,
     'imageData' => file_get_contents('kepem.jpg')
 ];
 $ids = $apiClient->putPhoto('x149395', $photoData);

@@ -5,6 +5,15 @@ Az ingatlancom/api-client csomag a [Szemantikus verziózás](http://semver.org/)
 
 A Changelog a [Keep a Changelog](http://keepachangelog.com) formátumában íródik.
 
+## [3.3.0] - 2026-07-28
+
+### Bekerült
+- A fotók szinkronizálásánál ezentúl használható a `subtype` mező 
+- Új PhotoSubtypeEnum osztály, amely tartalmazza a fotóknál beküldhető subtype értékeket
+
+### Kikerült
+- bumpversion
+
 ## [3.2.2] - 2021-04-29
 
 ### Változott
