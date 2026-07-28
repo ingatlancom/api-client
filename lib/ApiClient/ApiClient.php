@@ -34,7 +34,7 @@ use Stash\Pool;
 class ApiClient
 {
     const APIVERSION = 1;
-    const CLIENT_VERSION = "3.2.2";
+    const CLIENT_VERSION = "3.3.0";
     const NUMBER_OF_MAX_PARALLEL_REQUESTS = 4;
     const PUT_WITH_IMAGE_DATA = 2;
     const PUT_WITHOUT_IMAGE_DATA = 1;
@@ -686,9 +686,13 @@ class ApiClient
         isset($photo2['labelId']) ?: $photo2['labelId'] = null;
         isset($photo1['title']) ?: $photo1['title'] = null;
         isset($photo2['title']) ?: $photo2['title'] = null;
+        isset($photo1['subtype']) ?: $photo1['subtype'] = null;
+        isset($photo2['subtype']) ?: $photo2['subtype'] = null;
+
         if (
             $photo1['title'] != $photo2['title'] ||
-            $photo1['labelId'] != $photo2['labelId']
+            $photo1['labelId'] != $photo2['labelId'] ||
+            $photo1['subtype'] != $photo2['subtype']
         ) {
             return true;
         }

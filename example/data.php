@@ -1,5 +1,6 @@
 <?php
 use IngatlanCom\ApiClient\Enum\PhotoLabelEnum;
+use IngatlanCom\ApiClient\Enum\PhotoSubtypeEnum;
 
 $testAd1 = [
     'ownId'                 => 'x149395',
@@ -102,7 +103,8 @@ $testPhotos = [
             'order'    => 1,
             'title'    => 'Képfelirat',
             'location' => 'http://lorempixel.com/800/600/city/1/',
-            'labelId'  => PhotoLabelEnum::KORNYEK
+            'labelId'  => PhotoLabelEnum::KORNYEK,
+            'subtype' => PhotoSubtypeEnum::AI_GENERATED,
         ],
         [
             'ownId'    => 'kep2',
