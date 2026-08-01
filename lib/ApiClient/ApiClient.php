@@ -370,6 +370,8 @@ class ApiClient
             throw new \Exception('A hirdetés ID-k lekérése nem sikerült', 0, $e);
         }
 
+        $adIds = $this->normalizeAdIds($adIds);
+
         $ownIds = array_reduce(
             $ids,
             function ($carry, $item) {
@@ -387,6 +389,24 @@ class ApiClient
         }
 
         return $idsToDelete;
+    }
+
+    /**
+     * @param array $ids
+     * @return array
+     */
+    private function normalizeAdIds(array $ids)
+    {
+        return array_map([$this, 'normalizeAdId'], $ids);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    private function normalizeAdId($id)
+    {
+        return strval($id);
     }
 
     /**
